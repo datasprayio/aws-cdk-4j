@@ -17,7 +17,7 @@ public class StackDefinition {
     private final String stackName;
 
     @Nonnull
-    private final Path templateFile;
+    private final Map<String, Object> template;
 
     @Nonnull
     private final String environment;
@@ -38,7 +38,7 @@ public class StackDefinition {
     private final List<String> dependencies;
 
     private StackDefinition(@Nonnull String stackName,
-                            @Nonnull Path templateFile,
+                            @Nonnull Map<String, Object> template,
                             @Nonnull String environment,
                             @Nullable Integer requiredToolkitStackVersion,
                             @Nullable Map<String, ParameterDefinition> parameters,
@@ -46,7 +46,7 @@ public class StackDefinition {
                             @Nullable Map<String, Map<String, Object>> resources,
                             @Nullable List<String> dependencies) {
         this.stackName = Objects.requireNonNull(stackName, "Stack name can't be null");
-        this.templateFile = Objects.requireNonNull(templateFile, "Template file can't be null");
+        this.template = Objects.requireNonNull(template, "Template can't be null");
         this.environment = Objects.requireNonNull(environment, "Environment can't be null");
         this.requiredToolkitStackVersion = requiredToolkitStackVersion;
         this.parameters = parameters != null ? ImmutableMap.copyOf(parameters) : ImmutableMap.of();
@@ -61,8 +61,8 @@ public class StackDefinition {
     }
 
     @Nonnull
-    public Path getTemplateFile() {
-        return templateFile;
+    public Map<String, Object> getTemplate() {
+        return template;
     }
 
     @Nonnull
@@ -99,7 +99,7 @@ public class StackDefinition {
     public String toString() {
         return "StackDefinition{" +
                 "stackName='" + stackName + '\'' +
-                ", templateFile=" + templateFile +
+                ", template=" + template +
                 ", environment='" + environment + '\'' +
                 ", requiredToolkitStackVersion=" + requiredToolkitStackVersion +
                 ", parameters=" + parameters +
@@ -115,7 +115,7 @@ public class StackDefinition {
     public static final class Builder {
 
         private String stackName;
-        private Path templateFile;
+        private Map<String, Object> template;
         private String environment;
         private Integer requiredToolkitStackVersion;
         private Map<String, ParameterDefinition> parameters;
@@ -131,8 +131,8 @@ public class StackDefinition {
             return this;
         }
 
-        public Builder withTemplateFile(@Nonnull Path templateFile) {
-            this.templateFile = templateFile;
+        public Builder withTemplate(@Nonnull Map<String, Object> template) {
+            this.template = template;
             return this;
         }
 
@@ -167,7 +167,7 @@ public class StackDefinition {
         }
 
         public StackDefinition build() {
-            return new StackDefinition(stackName, templateFile, environment, requiredToolkitStackVersion, parameters,
+            return new StackDefinition(stackName, template, environment, requiredToolkitStackVersion, parameters,
                     parameterValues, resources, dependencies);
         }
     }

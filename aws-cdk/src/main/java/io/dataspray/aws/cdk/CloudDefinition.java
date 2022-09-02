@@ -89,11 +89,6 @@ public class CloudDefinition {
                 '}';
     }
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .registerModule(new JSR353Module());
-
     public static CloudDefinition create(Path cloudAssemblyDirectory) {
         if (!Files.exists(cloudAssemblyDirectory)) {
             throw new CdkException("The cloud assembly directory " + cloudAssemblyDirectory + " doesn't exist. " +
@@ -124,31 +119,27 @@ public class CloudDefinition {
                     });
         }
 
-        Map<String, StackDefinition> stacks = assemblyManifest.getArtifacts().entrySet().stream()
-                .filter(artifact -> artifact.getValue().getType() == ArtifactType.AWS_CLOUDFORMATION_STACK)
-                .map(artifact -> {
-                    String artifactId = artifact.getKey();
-                    ArtifactManifest stackArtifact = artifact.getValue();
-                    String stackName = ObjectUtils.firstNonNull(stackArtifact.getDisplayName(), artifactId);
-                    AwsCloudFormationStackProperties properties = JsiiUtil.getProperty(stackArtifact, "properties", AwsCloudFormationStackProperties.class);
-                    Path templateFile = cloudAssemblyDirectory.resolve(properties.getTemplateFile());
-                    Integer requiredToolkitStackVersion = Optional.ofNullable(properties.getRequiresBootstrapStackVersion())
+        Map<String, StackDefinition> stacks = cloudAssembly.getStacks().stream()
+                .map(stack -> {
+                    String artifactId = stack.getId();
+                    String stackName = ObjectUtils.firstNonNull(stack.getDisplayName(), artifactId);
+                    Integer requiredToolkitStackVersion = Optional.ofNullable(stack.getRequiresBootstrapStackVersion())
                             .map(Number::intValue)
                             .orElse(null);
-                    Map<String, Object> template = readTemplate(templateFile);
-                    Map<String, ParameterDefinition> parameters = getParameterDefinitions(template);
-                    Map<String, String> parameterValues = properties.getParameters();
-
+                    Map<String, Object> template = (Map<String, Object>)stack.getTemplate();
                     Map<String, Map<String, Object>> resources = (Map<String, Map<String, Object>>) template.getOrDefault("Resources", ImmutableMap.of());
+                    Map<String, ParameterDefinition> parameters = getParameterDefinitions(template);
+                    Map<String, String> parameterValues = stack.getParameters();
+
                     return StackDefinition.builder()
                             .withStackName(stackName)
-                            .withTemplateFile(templateFile)
-                            .withEnvironment(stackArtifact.getEnvironment())
+                            .withTemplate(template)
+                            .withEnvironment("aws://"+stack.getEnvironment().getAccount()+"/" + stack.getEnvironment().getRegion())
                             .withRequiredToolkitStackVersion(requiredToolkitStackVersion)
                             .withParameters(parameters)
                             .withParameterValues(parameterValues)
                             .withResources(resources)
-                            .withDependencies(stackArtifact.getDependencies())
+                            .withDependencies(stack.getManifest().getDependencies())
                             .build();
                 })
                 .collect(Collectors.toMap(StackDefinition::getStackName, Function.identity()));
@@ -172,15 +163,6 @@ public class CloudDefinition {
                 }
                 consumer.accept(definition);
             }
-        }
-    }
-
-    private static Map<String, Object> readTemplate(Path template) {
-        try {
-            return OBJECT_MAPPER.readValue(template.toFile(), new TypeReference<Map<String, Object>>() {
-            });
-        } catch (IOException e) {
-            throw new CdkException("Failed to read the stack template: " + template);
         }
     }
 

@@ -4,12 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.dataspray</groupId>
-    <artifactId>synth-deploy-after-rollback-it</artifactId>
+    <artifactId>synth-deploy-basic-it-as-library</artifactId>
     <version>1.0.0</version>
 
     <description>
-        Checks that a stack is deleted and re-created if it's in ROLLBACK_COMPLETED or ROLLBACK_FAILED state at the
-        start of deployment.
+        Tests that a stack with a single bucket is created and a parameter specified in the plugin configuration is
+        passed. All using library instead of plugin.
     </description>
 
     <properties>
@@ -33,7 +33,7 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awscdk</groupId>
-            <artifactId>dynamodb</artifactId>
+            <artifactId>s3</artifactId>
             <version>${cdk.version}</version>
         </dependency>
     </dependencies>
@@ -48,22 +48,21 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>@project.groupId@</groupId>
-                <artifactId>aws-cdk-maven-plugin</artifactId>
-                <version>@project.version@</version>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.0.0</version>
                 <executions>
                     <execution>
-                        <id>synth</id>
+                        <id>deploy-stack</id>
+                        <phase>deploy</phase>
                         <goals>
-                            <goal>synth</goal>
-                            <goal>deploy</goal>
+                            <goal>java</goal>
                         </goals>
-                        <configuration>
-                            <app>io.dataspray.aws.cdk.maven.it.DeployAfterRollbackTestApp</app>
-                            <toolkitStackName>after-rollback-it-cdk-toolkit</toolkitStackName>
-                        </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <mainClass>io.dataspray.aws.cdk.maven.it.DeployBasicTestApp</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>

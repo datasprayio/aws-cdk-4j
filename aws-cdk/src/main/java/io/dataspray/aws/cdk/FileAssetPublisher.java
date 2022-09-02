@@ -16,6 +16,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -56,6 +57,19 @@ public class FileAssetPublisher {
     }
 
     /**
+     * Uploads a string as a file (zipping it before uploading) to S3 bucket.
+     *
+     * @param content the content of the file
+     * @param objectName the name of the object in the bucket
+     * @param bucketName the name of the bucket
+     * @throws IOException if I/O error occurs while uploading a file or directory
+     */
+    public void publish(byte[] data, String objectName, String bucketName, ResolvedEnvironment environment) throws IOException {
+        logger.info("Publishing inline content asset, bucketName={}, objectName={}", bucketName, objectName);
+            publishFile(data, objectName, bucketName, environment);
+    }
+
+    /**
      * Zips the directory and uploads it to S3 bucket.
      */
     private void publishDirectory(Path directory, String objectName, String bucketName, ResolvedEnvironment environment) throws IOException {
@@ -73,6 +87,15 @@ public class FileAssetPublisher {
                     return FileVisitResult.CONTINUE;
                 }
             });
+        }
+    }
+
+    /**
+     * Uploads the bytes to S3 bucket.
+     */
+    private void publishFile(byte[] data, String objectName, String bucketName, ResolvedEnvironment environment) throws IOException {
+        try (OutputStream outputStream = new S3ObjectOutputStream(getS3Client(environment), bucketName, objectName)) {
+            outputStream.write(data);
         }
     }
 

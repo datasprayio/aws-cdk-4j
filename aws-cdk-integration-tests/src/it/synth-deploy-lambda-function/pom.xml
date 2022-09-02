@@ -19,12 +19,20 @@
         <shade.plugin.version>3.2.2</shade.plugin.version>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>io.dataspray</groupId>
+            <artifactId>aws-cdk</artifactId>
+            <version>@project.version@</version>
+        </dependency>
+    </dependencies>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>bom</artifactId>
-                <version>2.10.24</version>
+                <version>@aws.sdk.version@</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

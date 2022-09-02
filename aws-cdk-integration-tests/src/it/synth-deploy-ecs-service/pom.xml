@@ -21,6 +21,14 @@
         <module>cdk-stack</module>
     </modules>
 
+    <dependencies>
+        <dependency>
+            <groupId>io.dataspray</groupId>
+            <artifactId>aws-cdk</artifactId>
+            <version>@project.version@</version>
+        </dependency>
+    </dependencies>
+
     <dependencyManagement>
         <dependencies>
             <dependency>

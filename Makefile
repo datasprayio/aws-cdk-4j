@@ -1,6 +1,4 @@
 
-.EXPORT_ALL_VARIABLES:
-AWS_PROFILE=aws-cdk-plugin-it
 
 run-it-macos:
 	mvn --batch-mode clean verify -DskipUTs=true -DskipITs=false -D"invoker.test"='*/pom.xml,!synth-deploy-ecs-service/pom.xml'

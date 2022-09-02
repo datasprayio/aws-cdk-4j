@@ -1,7 +1,14 @@
 package io.dataspray.aws.cdk;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr353.JSR353Module;
 import com.google.common.collect.Streams;
 import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
+import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -30,15 +37,14 @@ public class StackDeployer {
 
     private static final Logger logger = LoggerFactory.getLogger(StackDeployer.class);
 
-    public static final String ZIP_PACKAGING = "zip";
-    public static final String FILE_PACKAGING = "file";
-    public static final String IMAGE_PACKAGING = "container-image";
-
     private static final String BOOTSTRAP_VERSION_OUTPUT = "BootstrapVersion";
     private static final String BUCKET_NAME_OUTPUT = "BucketName";
     private static final String BUCKET_DOMAIN_NAME_OUTPUT = "BucketDomainName";
-    private static final String ASSET_PREFIX_SEPARATOR = "||";
     private static final int MAX_TEMPLATE_SIZE = 50 * 1024;
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+            .setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
+            .registerModule(new JSR353Module());
 
     private final CloudFormationClient client;
     private final Path cloudAssemblyDirectory;
@@ -156,27 +162,31 @@ public class StackDeployer {
     }
 
     private TemplateRef getTemplateRef(StackDefinition stackDefinition) {
-        Path templateFile = cloudAssemblyDirectory.resolve(stackDefinition.getTemplateFile());
-        TemplateRef templateRef;
+        Map<String, Object> template = stackDefinition.getTemplate();
+        String templateStr;
         try {
-            templateRef = readTemplateBody(templateFile, MAX_TEMPLATE_SIZE)
-                    .map(TemplateRef::fromString)
-                    .orElse(null);
-        } catch (IOException e) {
+            templateStr = OBJECT_MAPPER.writeValueAsString(template);
+        } catch (JsonProcessingException e) {
             throw StackDeploymentException.builder(stackDefinition.getStackName(), environment)
-                    .withCause("Unable to read the template file: " + templateFile)
+                    .withCause("Unable to parse template as json")
                     .withCause(e)
                     .build();
+        }
+        byte[] templateBytes = templateStr.getBytes(StandardCharsets.UTF_8);
+        TemplateRef templateRef = null;
+
+        if (templateBytes.length <= MAX_TEMPLATE_SIZE) {
+            templateRef = TemplateRef.fromString(templateStr);
         }
 
         if (templateRef == null) {
             Toolkit toolkit = getToolkit(stackDefinition);
             String contentHash;
             try {
-                contentHash = hash(templateFile.toFile());
+                contentHash = hash(templateBytes);
             } catch (IOException e) {
                 throw StackDeploymentException.builder(stackDefinition.getStackName(), environment)
-                        .withCause("Unable to read the template file: " + templateFile)
+                        .withCause("Unable to hash the template")
                         .withCause(e)
                         .build();
             }
@@ -184,10 +194,10 @@ public class StackDeployer {
             String objectName = "cdk/" + stackDefinition.getStackName() + "/" + contentHash + ".json";
 
             try {
-                fileAssetPublisher.publish(templateFile, objectName, toolkit.getBucketName(), environment);
+                fileAssetPublisher.publish(templateBytes, objectName, toolkit.getBucketName(), environment);
             } catch (IOException e) {
                 throw StackDeploymentException.builder(stackDefinition.getStackName(), environment)
-                        .withCause("An error occurred while uploading the template file to the deployment bucket")
+                        .withCause("An error occurred while uploading the template to the deployment bucket")
                         .withCause(e)
                         .build();
             } catch (CdkException e) {
@@ -224,25 +234,8 @@ public class StackDeployer {
         return Optional.ofNullable(stack);
     }
 
-    private String hash(File file) throws IOException {
-        return com.google.common.io.Files.asByteSource(file).hash(Hashing.sha256()).toString();
-    }
-
-    private Optional<String> readTemplateBody(Path template, long limit) throws IOException {
-        byte[] buffer = new byte[1024 * 8];
-        ByteArrayOutputStream templateBody = new ByteArrayOutputStream();
-        int bytesRead;
-        try (InputStream inputStream = new BufferedInputStream(new FileInputStream(template.toFile()))) {
-            while (templateBody.size() <= limit && (bytesRead = inputStream.read(buffer)) != -1) {
-                templateBody.write(buffer, 0, bytesRead);
-            }
-        }
-
-        if (templateBody.size() > limit) {
-            return Optional.empty();
-        }
-
-        return Optional.of(templateBody.toString(StandardCharsets.UTF_8.name()));
+    private String hash(byte[] data) throws IOException {
+        return ByteSource.wrap(data).hash(Hashing.sha256()).toString();
     }
 
     private Toolkit getToolkit(StackDefinition stack) {
