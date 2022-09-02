@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>aws-cdk-integration-tests</artifactId>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
 
     <name>AWS CDK Integration tests</name>
     <description>
@@ -18,20 +18,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>default-jar</id>
-                        <phase>none</phase>
-                        <configuration>
-                            <finalName>unwanted</finalName>
-                            <classifier>unwanted</classifier>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-invoker-plugin</artifactId>
