@@ -2,13 +2,13 @@
 <h5 align="center">Java Library & Maven Plugin</h5>
 <div align="center">
   <a href="https://github.com/clearflask/clearflask/actions?query=workflow%3A%22CI%22">
-    <img alt="Build Status" src="https://img.shields.io/github/workflow/status/datasprayio/aws-cdk-maven-plugin/CodeQL?style=for-the-badge">
+    <img alt="Build Status" src="https://img.shields.io/github/workflow/status/datasprayio/aws-cdk/CodeQL?style=for-the-badge">
   </a>
-  <a href="https://search.maven.org/artifact/io.dataspray/aws-cdk-maven-plugin">
-    <img alt="Maven Central release" src="https://img.shields.io/maven-central/v/io.dataspray/aws-cdk-maven-plugin?style=for-the-badge">
+  <a href="https://search.maven.org/artifact/io.dataspray/aws-cdk">
+    <img alt="Maven Central release" src="https://img.shields.io/maven-central/v/io.dataspray/aws-cdk?style=for-the-badge">
   </a>
   <a href="https://github.com/clearflask/clearflask/blob/master/COPYING">
-    <img alt="License" src="https://img.shields.io/github/license/datasprayio/aws-cdk-maven-plugin?style=for-the-badge">
+    <img alt="License" src="https://img.shields.io/github/license/datasprayio/aws-cdk?style=for-the-badge">
   </a>
 </div>
 <h5 align="center">Synthesize, bootstrap and deploy all within Java or a Maven Plugin without the need for Node.js nor CDK Toolkit</h5>
