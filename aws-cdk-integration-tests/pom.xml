@@ -76,6 +76,11 @@
                         <version>3.0.12</version>
                         <type>pom</type>
                     </dependency>
+                    <dependency>
+                        <groupId>io.dataspray</groupId>
+                        <artifactId>aws-cdk</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
                 </dependencies>
             </plugin>
         </plugins>
