@@ -1,8 +1,14 @@
 package io.dataspray.aws.cdk.maven.it;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import io.dataspray.aws.cdk.AwsCdk;
 import software.amazon.awscdk.core.App;
 import software.amazon.awscdk.cxapi.CloudAssembly;
+import software.amazon.awscdk.cxapi.CloudFormationStackArtifact;
+
+import java.util.Optional;
 
 
 public class DeployBasicTestApp {
@@ -13,7 +19,14 @@ public class DeployBasicTestApp {
         new DeployBasicTestStack(app, "synth-deploy-basic-test-stack-as-library", stage);
         CloudAssembly assembly = app.synth();
         AwsCdk.bootstrap().execute(assembly);
-        AwsCdk.deploy().execute(assembly);
+        AwsCdk.deploy().execute(
+                assembly,
+                "basic-it-cdk-toolkit-as-library",
+                ImmutableSet.copyOf(Lists.transform(assembly.getStacks(), CloudFormationStackArtifact::getStackName)),
+                ImmutableMap.of("Parameter", "OverriddenValue"),
+                ImmutableMap.of("testTag", "testTagValue"),
+                Optional.empty(),
+                true);
     }
 
 }

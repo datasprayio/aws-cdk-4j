@@ -14,9 +14,9 @@ public class DestroyTestStack extends Stack {
     public DestroyTestStack(final Construct scope, final String id) {
         super(scope, id);
 
-        Table.Builder.create(this, "CarTable")
+        Table.Builder.create(this, "ItCarTable")
                 .removalPolicy(RemovalPolicy.DESTROY)
-                .tableName("car")
+                .tableName("it-car")
                 .billingMode(BillingMode.PAY_PER_REQUEST)
                 .partitionKey(Attribute.builder()
                         .name("id")

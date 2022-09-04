@@ -2,11 +2,11 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "Simple stack with a single DynamoDB table",
   "Resources": {
-    "CarTable": {
+    "ItBusTable": {
       "Type": "AWS::DynamoDB::Table",
       "DeletionPolicy": "Delete",
       "Properties": {
-        "TableName": "car",
+        "TableName": "it-bus",
         "BillingMode": "PAY_PER_REQUEST",
         "AttributeDefinitions": [
           {

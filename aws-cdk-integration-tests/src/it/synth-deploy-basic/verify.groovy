@@ -2,7 +2,10 @@ import io.dataspray.aws.cdk.Stacks
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient
 import software.amazon.awssdk.services.cloudformation.model.StackStatus
 
+import java.util.stream.Stream
+
 final STACK_NAME = "synth-deploy-basic-test-stack"
+final TOOLKIT_STACK_NAME = "basic-it-cdk-toolkit"
 
 System.properties.'aws.profile' = AWS_PROFILE
 CloudFormationClient cfnClient = CloudFormationClient.create();
@@ -17,7 +20,7 @@ try {
     def treeFile = new File(cloudAssemblyDirectory, "tree.json")
     assert treeFile.exists() && treeFile.file
 
-    def templateFile = new File(cloudAssemblyDirectory, STACK_NAME + "synth-deploy-basic-test-stack.template.json")
+    def templateFile = new File(cloudAssemblyDirectory, STACK_NAME + ".template.json")
     assert templateFile.exists() && templateFile.file
 
     def stack = Stacks.findStack(cfnClient, STACK_NAME).orElse(null);
@@ -39,9 +42,17 @@ try {
             .orElse(null)
     assert stage == "test"
 
-    def toolkitStack = Stacks.findStack(cfnClient, "basic-cdk-toolkit").orElse(null);
-    assert toolkitStack == null
+    def toolkitStack = Stacks.findStack(cfnClient, TOOLKIT_STACK_NAME).orElse(null);
+    assert toolkitStack?.stackStatus() == StackStatus.CREATE_COMPLETE
 } finally {
-    Stacks.findStack(cfnClient, STACK_NAME)
-            .ifPresent { stack -> Stacks.awaitCompletion(cfnClient, Stacks.deleteStack(cfnClient, stack.stackName())) }
+    def stack = Stacks.findStack(cfnClient, STACK_NAME)
+            .map { s -> Stacks.deleteStack(cfnClient, s.stackName()) }
+            .orElse(null)
+    def toolkitStack = Stacks.findStack(cfnClient, TOOLKIT_STACK_NAME)
+            .map { s -> ToolkitStacks.deleteToolkitStack(cfnClient, s) }
+            .orElse(null)
+
+    Stream.of(stack, toolkitStack)
+            .filter(Objects::nonNull)
+            .forEach { s -> Stacks.awaitCompletion(cfnClient, s) }
 }

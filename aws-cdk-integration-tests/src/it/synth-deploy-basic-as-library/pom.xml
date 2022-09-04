@@ -68,6 +68,9 @@
                 </executions>
                 <configuration>
                     <mainClass>io.dataspray.aws.cdk.maven.it.DeployBasicTestApp</mainClass>
+                    <arguments>
+                        <argument>test</argument>
+                    </arguments>
                 </configuration>
             </plugin>
         </plugins>
