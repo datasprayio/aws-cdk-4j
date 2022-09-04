@@ -2,9 +2,6 @@ package io.dataspray.aws.cdk.maven.it;
 
 import io.dataspray.aws.cdk.AwsCdk;
 import software.amazon.awscdk.core.App;
-import software.amazon.awscdk.core.Stack;
-import software.amazon.awscdk.core.Environment;
-import software.amazon.awscdk.core.StackProps;
 import software.amazon.awscdk.cxapi.CloudAssembly;
 
 

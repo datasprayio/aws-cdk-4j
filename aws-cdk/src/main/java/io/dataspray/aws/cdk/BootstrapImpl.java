@@ -1,7 +1,9 @@
 package io.dataspray.aws.cdk;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
@@ -44,33 +46,33 @@ public class BootstrapImpl implements Bootstrap {
     private static final String BOOTSTRAP_VERSION_OUTPUT = "BootstrapVersion";
 
     @Override
-    public void execute(Path cloudAssemblyDirectory, String toolkitStackName, Set<String> stacks, Optional<String> profileOpt, boolean isInteractive) {
-        execute(CloudDefinition.create(cloudAssemblyDirectory), toolkitStackName, stacks, profileOpt, isInteractive);
+    public void execute(Path cloudAssemblyDirectory, String toolkitStackName, Set<String> stacks, Map<String, String> bootstrapParameters, Map<String, String> bootstrapTags, Optional<String> profileOpt, boolean isInteractive) {
+        execute(CloudDefinition.create(cloudAssemblyDirectory), toolkitStackName, stacks, bootstrapParameters, bootstrapTags, profileOpt, isInteractive);
     }
 
     @Override
     public void execute(CloudAssembly cloudAssembly) {
         execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME,
                 ImmutableSet.copyOf(Lists.transform(cloudAssembly.getStacks(), CloudFormationStackArtifact::getStackName)),
-                Optional.empty(), true);
+                null, null, Optional.empty(), true);
     }
 
     @Override
     public void execute(CloudAssembly cloudAssembly, String... stacks) {
-        execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME, ImmutableSet.copyOf(stacks), Optional.empty(), true);
+        execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME, ImmutableSet.copyOf(stacks), null, null, Optional.empty(), true);
     }
 
     @Override
     public void execute(CloudAssembly cloudAssembly, Set<String> stacks, String profile) {
-        execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME, stacks, Optional.of(profile), true);
+        execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME, stacks, null, null, Optional.of(profile), true);
     }
 
     @Override
-    public void execute(CloudAssembly cloudAssembly, String toolkitStackName, Set<String> stacks, Optional<String> profileOpt, boolean isInteractive) {
-        execute(CloudDefinition.create(cloudAssembly), toolkitStackName, stacks, profileOpt, isInteractive);
+    public void execute(CloudAssembly cloudAssembly, String toolkitStackName, Set<String> stacks, Map<String, String> bootstrapParameters, Map<String, String> bootstrapTags, Optional<String> profileOpt, boolean isInteractive) {
+        execute(CloudDefinition.create(cloudAssembly), toolkitStackName, stacks, bootstrapParameters, bootstrapTags, profileOpt, isInteractive);
     }
 
-    private void execute(CloudDefinition cloudDefinition, String toolkitStackName, Set<String> stacks, Optional<String> profileOpt, boolean isInteractive) {
+    private void execute(CloudDefinition cloudDefinition, String toolkitStackName, Set<String> stacks, Map<String, String> bootstrapParameters, Map<String, String> bootstrapTags, Optional<String> profileOpt, boolean isInteractive) {
         EnvironmentResolver environmentResolver = EnvironmentResolver.create(profileOpt.orElse(null));
         Map<String, Integer> environments = cloudDefinition.getStacks().stream()
                 .filter(stack -> stacks == null || stacks.isEmpty() || stacks.contains(stack.getStackName()))
@@ -91,15 +93,15 @@ public class BootstrapImpl implements Bootstrap {
                                 "supported by the plugin. Please try to update the plugin version in order to fix the problem")
                         .build();
             }
-            bootstrap(toolkitStackName, resolvedEnvironment, version, isInteractive);
+            bootstrap(toolkitStackName,
+                    bootstrapParameters != null ? bootstrapParameters : ImmutableMap.of(),
+                    bootstrapTags != null ? bootstrapTags : ImmutableMap.of(),
+                    resolvedEnvironment, version, isInteractive);
         });
     }
 
-    private void bootstrap(String toolkitStackName, ResolvedEnvironment environment, int version, boolean isInteractive) {
-        CloudFormationClient client = CloudFormationClient.builder()
-                .region(environment.getRegion())
-                .credentialsProvider(environment.getCredentialsProvider())
-                .build();
+    private void bootstrap(String toolkitStackName, Map<String, String> bootstrapParameters, Map<String, String> bootstrapTags, ResolvedEnvironment environment, int version, boolean isInteractive) {
+        CloudFormationClient client = CloudFormationClientProvider.get(environment);
 
         Stack toolkitStack = Stacks.findStack(client, toolkitStackName).orElse(null);
         if (toolkitStack != null) {
@@ -157,15 +159,19 @@ public class BootstrapImpl implements Bootstrap {
                 logger.info("Deploying a newer version of the toolkit stack (updating from {} to {}), environment={}, " +
                         "stackName={}", toolkitStackVersion, version, environment, toolkitStackName);
                 // TODO: consider the case when some of the parameters may be removed in the newer version
-                Map<String, ParameterValue> parameters = Stream.of(toolkitStack)
+                Map<String, ParameterValue> stackParameters = Stream.of(toolkitStack)
                         .filter(Stack::hasParameters)
                         .flatMap(s -> s.parameters().stream())
                         .collect(Collectors.toMap(software.amazon.awssdk.services.cloudformation.model.Parameter::parameterKey, p -> ParameterValue.unchanged()));
-                toolkitStack = Stacks.updateStack(client, toolkitStackName, toolkitTemplate, parameters);
+                bootstrapParameters.entrySet().stream()
+                        .filter(parameter -> parameter.getKey() != null && parameter.getValue() != null)
+                        .forEach(parameter -> stackParameters.put(parameter.getKey(), ParameterValue.value(parameter.getValue())));
+                toolkitStack = Stacks.updateStack(client, toolkitStackName, toolkitTemplate, stackParameters);
             } else {
                 logger.info("The toolkit stack doesn't exist. Deploying a new one, environment={}, stackName={}",
                         environment, toolkitStackName);
-                toolkitStack = Stacks.createStack(client, toolkitStackName, toolkitTemplate);
+                Map<String, ParameterValue> stackParameters = Maps.transformValues(bootstrapParameters, ParameterValue::value);
+                toolkitStack = Stacks.createStack(client, toolkitStackName, toolkitTemplate, stackParameters, bootstrapTags);
             }
             if (!Stacks.isCompleted(toolkitStack)) {
                 logger.info("Waiting until the toolkit stack reaches stable state, environment={}, stackName={}",

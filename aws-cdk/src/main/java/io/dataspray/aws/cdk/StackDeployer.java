@@ -1,17 +1,11 @@
 package io.dataspray.aws.cdk;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr353.JSR353Module;
 import com.google.common.collect.Streams;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
-import lombok.SneakyThrows;
+import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.services.cloudformation.model.CloudFormationException;
@@ -19,12 +13,7 @@ import software.amazon.awssdk.services.cloudformation.model.Output;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -41,10 +30,6 @@ public class StackDeployer {
     private static final String BUCKET_NAME_OUTPUT = "BucketName";
     private static final String BUCKET_DOMAIN_NAME_OUTPUT = "BucketDomainName";
     private static final int MAX_TEMPLATE_SIZE = 50 * 1024;
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
-            .registerModule(new JSR353Module());
 
     private final CloudFormationClient client;
     private final Path cloudAssemblyDirectory;
@@ -66,13 +51,10 @@ public class StackDeployer {
         this.fileAssetPublisher = fileAssetPublisher;
         this.dockerImagePublisher = dockerImagePublisher;
         this.isInteractive = isInteractive;
-        this.client = CloudFormationClient.builder()
-                .region(environment.getRegion())
-                .credentialsProvider(StaticCredentialsProvider.create(environment.getCredentials()))
-                .build();
+        this.client = CloudFormationClientProvider.get(environment);
     }
 
-    public Stack deploy(StackDefinition stackDefinition, Map<String, String> parameters, Map<String, String> tags) {
+    public Stack deploy(StackDefinition stackDefinition, Map<String, ParameterValue> assetParameters, Map<String, String> parameters, Map<String, String> tags) {
         String stackName = stackDefinition.getStackName();
         logger.info("Deploying '{}' stack", stackName);
 
@@ -102,6 +84,7 @@ public class StackDeployer {
                 .filter(parameter -> parameter.getKey() != null && parameter.getValue() != null)
                 .forEach(parameter -> stackParameters.put(parameter.getKey(), ParameterValue.value(parameter.getValue())));
 
+        stackParameters.putAll(assetParameters);
 
         Map<String, ParameterValue> effectiveParameters = stackParameters.entrySet().stream()
                 .filter(parameter -> stackDefinition.getParameters().containsKey(parameter.getKey()))
@@ -161,12 +144,20 @@ public class StackDeployer {
         return stack;
     }
 
+    public ResolvedEnvironment getEnvironment() {
+        return environment;
+    }
+
+    public ToolkitConfiguration getToolkitConfiguration() {
+        return toolkitConfiguration;
+    }
+
     private TemplateRef getTemplateRef(StackDefinition stackDefinition) {
         Map<String, Object> template = stackDefinition.getTemplate();
         String templateStr;
         try {
-            templateStr = OBJECT_MAPPER.writeValueAsString(template);
-        } catch (JsonProcessingException e) {
+            templateStr = new Gson().toJson(template);
+        } catch (Exception e) {
             throw StackDeploymentException.builder(stackDefinition.getStackName(), environment)
                     .withCause("Unable to parse template as json")
                     .withCause(e)

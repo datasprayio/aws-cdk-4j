@@ -1,7 +1,5 @@
 package io.dataspray.aws.cdk.context;
 
-import javax.json.JsonValue;
-
 /**
  * Contextual information provider.
  */
@@ -16,7 +14,7 @@ public interface ContextProviderMapper<T> {
      * @param props the properties based on which the contextual information will be provided
      * @return the context value represented as a JSON
      */
-    JsonValue getContextValue(T props);
+    Object getContextValue(T props);
 
     /**
      * @return context type

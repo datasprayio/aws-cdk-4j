@@ -3,6 +3,7 @@ package io.dataspray.aws.cdk;
 import software.amazon.awscdk.cxapi.CloudAssembly;
 
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -17,6 +18,9 @@ public interface Bootstrap {
      * @param cloudAssemblyDirectory Directory of synthesized stack(s)
      * @param toolkitStackName The name of the CDK toolkit stack.
      * @param stacks Stacks, for which bootstrapping will be performed if it's required.
+     * @param bootstrapParameters Input parameters for the bootstrap stack. In the case of an update, existing values
+     * will be reused.
+     * @param bootstrapTags Tags that will be added to the bootstrap stack.
      * @param profileOpt Optional AWS account profile name
      * @param isInteractive Whether session is interactive and logs should be printed
      */
@@ -24,6 +28,8 @@ public interface Bootstrap {
             Path cloudAssemblyDirectory,
             String toolkitStackName,
             Set<String> stacks,
+            Map<String, String> bootstrapParameters,
+            Map<String, String> bootstrapTags,
             Optional<String> profileOpt,
             boolean isInteractive);
 
@@ -62,6 +68,9 @@ public interface Bootstrap {
      * @param cloudAssembly Cloud assembly created via app.synth()
      * @param toolkitStackName The name of the CDK toolkit stack.
      * @param stacks Stacks, for which bootstrapping will be performed if it's required.
+     * @param bootstrapParameters Input parameters for the bootstrap stack. In the case of an update, existing values
+     * will be reused.
+     * @param bootstrapTags Tags that will be added to the bootstrap stack.
      * @param profileOpt Optional AWS account profile name
      * @param isInteractive Whether session is interactive and logs should be printed
      */
@@ -69,6 +78,8 @@ public interface Bootstrap {
             CloudAssembly cloudAssembly,
             String toolkitStackName,
             Set<String> stacks,
+            Map<String, String> bootstrapParameters,
+            Map<String, String> bootstrapTags,
             Optional<String> profileOpt,
             boolean isInteractive);
 }

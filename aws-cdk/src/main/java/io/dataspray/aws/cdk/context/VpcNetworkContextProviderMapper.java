@@ -1,12 +1,8 @@
 package io.dataspray.aws.cdk.context;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jsr353.JSR353Module;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -34,8 +30,6 @@ import software.amazon.awssdk.services.ec2.model.Tag;
 import software.amazon.awssdk.services.ec2.model.Vpc;
 import software.amazon.awssdk.services.ec2.model.VpnGateway;
 
-import javax.json.JsonObject;
-import javax.json.JsonValue;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,12 +46,6 @@ import java.util.stream.Stream;
 
 public class VpcNetworkContextProviderMapper implements ContextProviderMapper<VpcContextQuery> {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
-            .registerModule(new JSR353Module())
-            .registerModule(new SimpleModule()
-                    .addSerializer(VpcSubnetGroupType.class, new VpcSubnetGroupTypeJsonSerializer()));
-
     private static final String PUBLIC_SUBNET_TYPE = "Public";
     private static final String PRIVATE_SUBNET_TYPE = "Private";
     private static final String ISOLATED_SUBNET_TYPE = "Isolated";
@@ -71,12 +59,12 @@ public class VpcNetworkContextProviderMapper implements ContextProviderMapper<Vp
     }
 
     @Override
-    public JsonValue getContextValue(VpcContextQuery properties) {
+    public Object getContextValue(VpcContextQuery properties) {
         String environment = ContextProviders.buildEnvironment(properties.getAccount(), properties.getRegion());
         try (Ec2Client ec2Client = awsClientProvider.getClient(Ec2Client.class, environment)) {
             Vpc vpc = getVpc(ec2Client, getFilters(properties));
             VpcContext vpcContext = getVpcContext(ec2Client, vpc, properties);
-            return OBJECT_MAPPER.convertValue(vpcContext, JsonObject.class);
+            return vpcContext;
         }
     }
 

@@ -2,6 +2,9 @@ import io.dataspray.aws.cdk.Stacks
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient
 import software.amazon.awssdk.services.cloudformation.model.StackStatus
 
+final STACK_NAME = "synth-deploy-basic-test-stack"
+
+System.properties.'aws.profile' = AWS_PROFILE
 CloudFormationClient cfnClient = CloudFormationClient.create();
 
 try {
@@ -14,10 +17,10 @@ try {
     def treeFile = new File(cloudAssemblyDirectory, "tree.json")
     assert treeFile.exists() && treeFile.file
 
-    def templateFile = new File(cloudAssemblyDirectory, "synth-deploy-basic-test-stack.template.json")
+    def templateFile = new File(cloudAssemblyDirectory, STACK_NAME + "synth-deploy-basic-test-stack.template.json")
     assert templateFile.exists() && templateFile.file
 
-    def stack = Stacks.findStack(cfnClient, "synth-deploy-basic-test-stack").orElse(null);
+    def stack = Stacks.findStack(cfnClient, STACK_NAME).orElse(null);
     assert stack?.stackStatus() == StackStatus.CREATE_COMPLETE
 
     def parameterValue = Stacks.findOutput(stack, "ParameterValue")
@@ -26,19 +29,19 @@ try {
     assert parameterValue == "OverriddenValue"
 
     def tagValue = stack.tags().stream()
-            .filter({ tag -> tag.key() == "testTag"})
+            .filter({ tag -> tag.key() == "testTag" })
             .map({ tag -> tag.value() })
             .findAny()
             .orElse(null)
     assert tagValue == "testTagValue"
     def stage = Stacks.findOutput(stack, "Stage")
-            .map {output -> output.outputValue() }
+            .map { output -> output.outputValue() }
             .orElse(null)
     assert stage == "test"
 
     def toolkitStack = Stacks.findStack(cfnClient, "basic-cdk-toolkit").orElse(null);
     assert toolkitStack == null
 } finally {
-    Stacks.findStack(cfnClient, "synth-deploy-basic-test-stack")
-            .ifPresent{stack -> Stacks.awaitCompletion(cfnClient, Stacks.deleteStack(cfnClient, stack.stackName()))}
+    Stacks.findStack(cfnClient, STACK_NAME)
+            .ifPresent { stack -> Stacks.awaitCompletion(cfnClient, Stacks.deleteStack(cfnClient, stack.stackName())) }
 }

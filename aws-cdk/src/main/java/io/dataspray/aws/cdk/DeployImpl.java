@@ -82,8 +82,15 @@ public class DeployImpl implements Deploy {
                             toolkitConfiguration, filePublisher, dockerImagePublisher, isInteractive);
                 });
 
+                Map<String, ParameterValue> assetParameters = assetDeployer.deploy(
+                        stack,
+                        cloudDefinition.getCloudAssemblyDirectory(),
+                        deployer.getEnvironment(),
+                        deployer.getToolkitConfiguration(),
+                        isInteractive);
+
                 if (!stack.getResources().isEmpty()) {
-                    deployer.deploy(stack, parameters != null ? parameters : ImmutableMap.of(), tags != null ? tags : ImmutableMap.of());
+                    deployer.deploy(stack, assetParameters, parameters != null ? parameters : ImmutableMap.of(), tags != null ? tags : ImmutableMap.of());
                 } else {
                     deployer.destroy(stack);
                 }

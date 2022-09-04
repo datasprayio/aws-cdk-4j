@@ -1,11 +1,8 @@
 import io.dataspray.aws.cdk.Stacks
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient
-import software.amazon.awssdk.services.cloudformation.model.Stack
 import software.amazon.awssdk.services.cloudformation.model.StackStatus
 import software.amazon.awssdk.services.ecr.EcrClient
 import software.amazon.awssdk.services.ecr.model.DeleteRepositoryRequest
-import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client
-import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetHealthRequest
 
 import java.util.stream.Collectors
 import java.util.stream.Stream
@@ -13,6 +10,7 @@ import java.util.stream.Stream
 final STACK_NAME = "synth-deploy-ecs-service-test-stack"
 final TOOLKIT_STACK_NAME = "ecs-service-it-cdk-toolkit"
 
+System.properties.'aws.profile' = AWS_PROFILE
 CloudFormationClient cfnClient = CloudFormationClient.create();
 
 try {
@@ -24,24 +22,6 @@ try {
 
     def toolkitStack = Stacks.findStack(cfnClient, TOOLKIT_STACK_NAME).orElse(null);
     assert toolkitStack == null
-// Unfortunately, it takes to much time to wait until the service is healthy
-/*  ElasticLoadBalancingV2Client elbClient = ElasticLoadBalancingV2Client.create();
-    def targetGroupArn = getRequiredOutput(stack, "TargetGroupArn")
-    TargetHealth targetHealth = getTargetHealth(elbClient, targetGroupArn);
-    while (targetHealth.state() != TargetHealthStateEnum.HEALTHY) {
-        Thread.sleep(5000);
-        targetHealth = getTargetHealth(elbClient, targetGroupArn)
-    }
-
-    assert targetHealth.state() == TargetHealthStateEnum.HEALTHY
-
-    def endpointUrl = new URL(getRequiredOutput(stack, "Endpoint"))
-
-    def connection = endpointUrl.openConnection()
-    connection.connect()
-    assert connection.getResponseCode() == 200
-    assert connection.getInputStream().getText() == "SUCCESS"
-    */
 } finally {
     def stacks = Stream.of(STACK_NAME, TOOLKIT_STACK_NAME)
             .map(stackName -> Stacks.findStack(cfnClient, stackName).orElse(null))
@@ -65,19 +45,4 @@ def deleteRepository(EcrClient client, String repositoryName) {
             .force(true)
             .build()
     client.deleteRepository(deleteRequest)
-}
-
-def getTargetHealth(ElasticLoadBalancingV2Client elbClient, String targetGroupArn) {
-    DescribeTargetHealthRequest request = DescribeTargetHealthRequest.builder()
-            .targetGroupArn(targetGroupArn)
-            .build()
-    return elbClient.describeTargetHealth(request).targetHealthDescriptions().get(0).targetHealth()
-}
-
-def getRequiredOutput(Stack stack, String name) {
-    return stack.outputs().stream()
-            .filter { output -> output.outputKey() == name }
-            .map { output -> output.outputValue() }
-            .findAny()
-            .get();
 }

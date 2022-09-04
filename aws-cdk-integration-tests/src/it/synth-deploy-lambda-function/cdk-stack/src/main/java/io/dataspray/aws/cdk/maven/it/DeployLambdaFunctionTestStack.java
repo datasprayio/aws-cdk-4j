@@ -35,9 +35,9 @@ public class DeployLambdaFunctionTestStack extends Stack {
         restApi.getRoot().addMethod("GET", new LambdaIntegration(function));
 
         CfnOutput.Builder.create(this, "Endpoint")
-                        .description("URL of the REST endpoint")
-                        .value(restApi.getDeploymentStage().urlForPath("/"))
-                        .build();
+                .description("URL of the REST endpoint")
+                .value(restApi.getDeploymentStage().urlForPath("/"))
+                .build();
     }
 
 }

@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awscdk.cxapi.CloudAssembly;
 import software.amazon.awscdk.cxapi.CloudFormationStackArtifact;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.cloudformation.model.StackStatus;
@@ -69,10 +68,7 @@ public class DestroyImpl implements Destroy {
                 .forEach(stack -> {
                     CloudFormationClient client = clients.computeIfAbsent(stack.getEnvironment(), environment -> {
                         ResolvedEnvironment resolvedEnvironment = environmentResolver.resolve(environment);
-                        return CloudFormationClient.builder()
-                                .region(resolvedEnvironment.getRegion())
-                                .credentialsProvider(StaticCredentialsProvider.create(resolvedEnvironment.getCredentials()))
-                                .build();
+                        return CloudFormationClientProvider.get(resolvedEnvironment);
                     });
 
                     destroy(client, stack, isInteractive);

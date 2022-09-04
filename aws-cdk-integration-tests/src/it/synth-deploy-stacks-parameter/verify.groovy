@@ -7,6 +7,7 @@ import software.amazon.awssdk.services.cloudformation.model.StackStatus
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
+System.properties.'aws.profile' = AWS_PROFILE
 CloudFormationClient cfnClient = CloudFormationClient.create();
 
 try {

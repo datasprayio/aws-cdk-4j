@@ -1,7 +1,7 @@
 name: 'Command Dispatch'
 on:
   issue_comment:
-    types: [created]
+    types: [ created ]
 jobs:
   command_dispatch:
     runs-on: ubuntu-latest

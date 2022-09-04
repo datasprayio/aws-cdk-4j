@@ -15,7 +15,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <cdk.version>1.35.0</cdk.version>
+        <cdk.version>@aws.cdk.version@</cdk.version>
     </properties>
 
     <dependencies>
@@ -73,6 +73,9 @@
                             <parameters>
                                 <UserTableName>stacks_parameter_it_user_dev</UserTableName>
                             </parameters>
+                            <bootstrapParameters>
+                                <Qualifier>it-prm-dev</Qualifier>
+                            </bootstrapParameters>
                         </configuration>
                     </execution>
                     <execution>
@@ -89,6 +92,9 @@
                             <parameters>
                                 <UserTableName>stacks_parameter_it_user</UserTableName>
                             </parameters>
+                            <bootstrapParameters>
+                                <Qualifier>it-prm-prd</Qualifier>
+                            </bootstrapParameters>
                         </configuration>
                     </execution>
                 </executions>

@@ -65,6 +65,9 @@
                         <configuration>
                             <app>io.dataspray.aws.cdk.maven.it.DeployLambdaFunctionTestApp</app>
                             <toolkitStackName>lambda-function-it-cdk-toolkit</toolkitStackName>
+                            <bootstrapParameters>
+                                <Qualifier>it-lambda</Qualifier>
+                            </bootstrapParameters>
                         </configuration>
                     </execution>
                 </executions>

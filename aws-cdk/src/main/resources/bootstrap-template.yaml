@@ -41,7 +41,7 @@ Parameters:
     Description: Whether or not to enable S3 Staging Bucket Public Access Block Configuration
     Default: 'true'
     Type: 'String'
-    AllowedValues: ['true', 'false']
+    AllowedValues: [ 'true', 'false' ]
 Conditions:
   HasTrustedAccounts:
     Fn::Not:
@@ -540,4 +540,4 @@ Outputs:
     Description: The version of the bootstrap resources that are currently mastered
       in this stack
     Value:
-      Fn::GetAtt: [CdkBootstrapVersion, Value]
+      Fn::GetAtt: [ CdkBootstrapVersion, Value ]

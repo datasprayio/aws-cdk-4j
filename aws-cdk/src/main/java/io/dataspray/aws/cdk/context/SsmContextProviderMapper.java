@@ -8,8 +8,6 @@ import software.amazon.awssdk.services.ssm.model.GetParameterResponse;
 import software.amazon.awssdk.services.ssm.model.Parameter;
 import software.amazon.awssdk.services.ssm.model.ParameterNotFoundException;
 
-import javax.json.Json;
-import javax.json.JsonValue;
 import java.util.Optional;
 
 
@@ -22,7 +20,7 @@ public class SsmContextProviderMapper implements ContextProviderMapper<SSMParame
     }
 
     @Override
-    public JsonValue getContextValue(SSMParameterContextQuery properties) {
+    public Object getContextValue(SSMParameterContextQuery properties) {
         String environment = ContextProviders.buildEnvironment(properties.getAccount(), properties.getRegion());
         String parameterName = properties.getParameterName();
 
@@ -43,7 +41,7 @@ public class SsmContextProviderMapper implements ContextProviderMapper<SSMParame
                         "following environment: " + environment);
             }
 
-            return Json.createValue(value);
+            return value;
         }
     }
 

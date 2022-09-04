@@ -8,6 +8,7 @@ import java.util.stream.Stream
 final STACK_NAME = "deploy-lambda-function-test-stack"
 final TOOLKIT_STACK_NAME = "lambda-function-it-cdk-toolkit";
 
+System.properties.'aws.profile' = AWS_PROFILE
 CloudFormationClient cfnClient = CloudFormationClient.create();
 
 try {
@@ -18,7 +19,7 @@ try {
     assert toolkitStack?.stackStatus() == StackStatus.CREATE_COMPLETE
 
     def endpointUrl = Stacks.findOutput(stack, "Endpoint")
-            .map{output -> new URL(output.outputValue())}
+            .map { output -> new URL(output.outputValue()) }
             .orElse(null)
     assert endpointUrl != null
 
@@ -28,13 +29,13 @@ try {
     assert connection.getInputStream().getText() == "SUCCESS"
 } finally {
     def stack = Stacks.findStack(cfnClient, STACK_NAME)
-            .map{s -> Stacks.deleteStack(cfnClient, s.stackName())}
+            .map { s -> Stacks.deleteStack(cfnClient, s.stackName()) }
             .orElse(null)
     def toolkitStack = Stacks.findStack(cfnClient, TOOLKIT_STACK_NAME)
-            .map{s -> ToolkitStacks.deleteToolkitStack(cfnClient, s)}
+            .map { s -> ToolkitStacks.deleteToolkitStack(cfnClient, s) }
             .orElse(null)
 
     Stream.of(stack, toolkitStack)
-        .filter(Objects::nonNull)
-        .forEach{s -> Stacks.awaitCompletion(cfnClient, s)}
+            .filter(Objects::nonNull)
+            .forEach { s -> Stacks.awaitCompletion(cfnClient, s) }
 }

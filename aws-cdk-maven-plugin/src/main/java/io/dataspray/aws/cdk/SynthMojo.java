@@ -1,9 +1,12 @@
 package io.dataspray.aws.cdk;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import io.dataspray.aws.cdk.context.AmiContextProviderMapper;
 import io.dataspray.aws.cdk.context.AvailabilityZonesContextProviderMapper;
 import io.dataspray.aws.cdk.context.AwsClientProvider;
@@ -43,26 +46,24 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awscdk.cloudassembly.schema.AssemblyManifest;
 import software.amazon.awscdk.cloudassembly.schema.ContextProvider;
 import software.amazon.awscdk.cloudassembly.schema.Manifest;
+import software.amazon.awscdk.cloudassembly.schema.MissingContext;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.route53.Route53Client;
 import software.amazon.awssdk.services.ssm.SsmClient;
+import software.amazon.jsii.JsiiObject;
+import software.amazon.jsii.UnsafeCast;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-import javax.json.JsonValue;
-import javax.json.JsonWriter;
-import javax.json.JsonWriterFactory;
-import javax.json.stream.JsonGenerator;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -131,7 +132,7 @@ public class SynthMojo extends AbstractCdkMojo implements ContextEnabled {
     private List<String> arguments;
 
     private ProcessRunner processRunner;
-    private Map<ContextProvider, ContextProviderMapper> contextProviders;
+    private Map<ContextProvider, ContextProviderMapper<?>> contextProviders;
 
     @Override
     public void execute(Path cloudAssemblyDirectory, Optional<String> profileOpt, boolean isInteractive) {
@@ -141,7 +142,7 @@ public class SynthMojo extends AbstractCdkMojo implements ContextEnabled {
         synthesize(app, arguments != null ? arguments : Collections.emptyList(), cloudAssemblyDirectory, environmentResolver);
     }
 
-    private Map<ContextProvider, ContextProviderMapper> initContextProviders(EnvironmentResolver environmentResolver) {
+    private Map<ContextProvider, ContextProviderMapper<?>> initContextProviders(EnvironmentResolver environmentResolver) {
         AwsClientProvider awsClientProvider = new AwsClientProviderBuilder()
                 .withClientFactory(Ec2Client.class, env -> buildClient(Ec2Client.builder(), environmentResolver.resolve(env)))
                 .withClientFactory(SsmClient.class, env -> buildClient(SsmClient.builder(), environmentResolver.resolve(env)))
@@ -154,7 +155,7 @@ public class SynthMojo extends AbstractCdkMojo implements ContextEnabled {
                 })
                 .build();
 
-        Map<ContextProvider, ContextProviderMapper> contextProviders = new HashMap<>();
+        Map<ContextProvider, ContextProviderMapper<?>> contextProviders = new HashMap<>();
         contextProviders.put(ContextProvider.AVAILABILITY_ZONE_PROVIDER, new AvailabilityZonesContextProviderMapper(awsClientProvider));
         contextProviders.put(ContextProvider.SSM_PARAMETER_PROVIDER, new SsmContextProviderMapper(awsClientProvider));
         contextProviders.put(ContextProvider.HOSTED_ZONE_PROVIDER, new HostedZoneContextProviderMapper(awsClientProvider));
@@ -200,14 +201,15 @@ public class SynthMojo extends AbstractCdkMojo implements ContextEnabled {
             environment.computeIfAbsent(DEFAULT_ACCOUNT_VARIABLE_NAME, v -> environmentResolver.getDefaultAccount());
         }
 
-        JsonObject context = readContext();
+        Map<String, Object> context = readContext();
 
         logger.info("Synthesizing the cloud assembly for the '{}' application", app);
         AssemblyManifest cloudManifest = synthesize(app, arguments, outputDirectory, environment, context);
 
+        boolean contextIsEmpty = true;
         while (cloudManifest.getMissing() != null && !cloudManifest.getMissing().isEmpty()) {
-            JsonObjectBuilder contextBuilder = Json.createObjectBuilder(context);
-            cloudManifest.getMissing().forEach(missingContext -> {
+            context = Maps.newHashMap(context);
+            for (MissingContext missingContext : cloudManifest.getMissing()) {
                 ContextProvider provider = missingContext.getProvider();
                 String key = missingContext.getKey();
 
@@ -217,8 +219,8 @@ public class SynthMojo extends AbstractCdkMojo implements ContextEnabled {
                             "'. Please consider updating the version of the plugin");
                 }
 
-                Object contextProps = JsiiUtil.getProperty(missingContext, "props", contextProviderMapper.getContextType());
-                JsonValue contextValue;
+                Object contextProps = UnsafeCast.unsafeCast((JsiiObject) missingContext.getProps(), contextProviderMapper.getContextType());
+                Object contextValue;
                 try {
                     contextValue = contextProviderMapper.getContextValue(contextProps);
                 } catch (Exception e) {
@@ -229,19 +231,22 @@ public class SynthMojo extends AbstractCdkMojo implements ContextEnabled {
                     throw new CdkException("Unable to resolve context value for the key '" + key +
                             "' using '" + provider + "' provider");
                 }
-                contextBuilder.add(key, contextValue);
-            });
-            context = contextBuilder.build();
+                contextIsEmpty = false;
+                context.put(key, contextValue);
+            }
             cloudManifest = synthesize(app, arguments, outputDirectory, environment, context);
         }
 
-        if (!context.isEmpty()) {
-            JsonWriterFactory writerFactory = Json.createWriterFactory(Collections.singletonMap(JsonGenerator.PRETTY_PRINTING, true));
-            File effectiveContextFile = outputDirectory.resolve("cdk.context.json").toFile();
-            try (JsonWriter jsonWriter = writerFactory.createWriter(new BufferedWriter(new FileWriter(effectiveContextFile)))) {
-                jsonWriter.write(context);
+        if (!contextIsEmpty) {
+            Path effectiveContextPath = outputDirectory.resolve("cdk.context.json");
+            String contextStrPretty = new GsonBuilder()
+                    .setPrettyPrinting()
+                    .create()
+                    .toJson(context);
+            try {
+                Files.write(effectiveContextPath, contextStrPretty.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
             } catch (IOException e) {
-                throw new CdkException("Unable to write effective context file to the " + outputDirectory);
+                throw new CdkException("Unable to write effective context file to " + effectiveContextPath, e);
             }
         }
 
@@ -249,31 +254,32 @@ public class SynthMojo extends AbstractCdkMojo implements ContextEnabled {
         return cloudManifest;
     }
 
-    private JsonObject readContext() {
+    private Map<String, Object> readContext() {
         File contextFile = new File(project.getBasedir(), CDK_CONTEXT_FILE_NAME);
 
-        JsonObject context;
+        Map<String, Object> context;
         if (contextFile.exists()) {
-            try {
-                context = OBJECT_MAPPER.readValue(contextFile, JsonObject.class);
+            try (Reader reader = new FileReader(contextFile)) {
+                context = new Gson().fromJson(reader, new TypeToken<Map<String, Object>>() {
+                }.getType());
             } catch (IOException e) {
                 throw new CdkException("Unable to read the runtime context from the " + contextFile);
             }
         } else {
-            context = JsonValue.EMPTY_JSON_OBJECT;
+            context = Maps.newHashMap();
         }
 
         return context;
     }
 
-    private AssemblyManifest synthesize(String app, List<String> arguments, Path outputDirectory, Map<String, String> environment, JsonObject context) {
+    private AssemblyManifest synthesize(String app, List<String> arguments, Path outputDirectory, Map<String, String> environment, Map<String, Object> context) {
         Map<String, String> appEnvironment;
         if (context.isEmpty()) {
             appEnvironment = environment;
         } else {
             appEnvironment = ImmutableMap.<String, String>builder()
                     .putAll(environment)
-                    .put(CONTEXT_VARIABLE_NAME, toString(context))
+                    .put(CONTEXT_VARIABLE_NAME, new Gson().toJson(context))
                     .build();
         }
 
@@ -293,14 +299,6 @@ public class SynthMojo extends AbstractCdkMojo implements ContextEnabled {
         }
 
         return Manifest.loadAssemblyManifest(outputDirectory.resolve("manifest.json").toString());
-    }
-
-    private String toString(JsonObject context) {
-        try {
-            return OBJECT_MAPPER.writeValueAsString(context);
-        } catch (JsonProcessingException e) {
-            throw new CdkException("Failed to serialize the runtime context", e);
-        }
     }
 
     private List<String> buildAppExecutionCommand(String app, List<String> arguments) {

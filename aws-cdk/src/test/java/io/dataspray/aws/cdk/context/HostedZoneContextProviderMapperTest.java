@@ -19,8 +19,6 @@ import software.amazon.awssdk.services.route53.model.NoSuchHostedZoneException;
 import software.amazon.awssdk.services.route53.model.VPC;
 
 import javax.annotation.Nullable;
-import javax.json.Json;
-import javax.json.JsonValue;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,10 +42,9 @@ public class HostedZoneContextProviderMapperTest {
                                 .build(),
                         ClientMockData.get()
                                 .withHostedZone(hostedZone("examplecom", "example.com.")),
-                        Json.createObjectBuilder()
-                                .add("Id", "examplecom")
-                                .add("Name", "example.com.")
-                                .build(),
+                        ImmutableMap.of(
+                                "Id", "examplecom",
+                                "Name", "example.com."),
                         null
                 },
                 {
@@ -58,10 +55,9 @@ public class HostedZoneContextProviderMapperTest {
                                 .build(),
                         ClientMockData.get()
                                 .withHostedZone(hostedZone("examplecom", "example.com.", hostedZoneConfig(false))),
-                        Json.createObjectBuilder()
-                                .add("Id", "examplecom")
-                                .add("Name", "example.com.")
-                                .build(),
+                        ImmutableMap.of(
+                                "Id", "examplecom",
+                                "Name", "example.com."),
                         null
                 },
                 {
@@ -72,10 +68,9 @@ public class HostedZoneContextProviderMapperTest {
                                 .build(),
                         ClientMockData.get()
                                 .withHostedZone(hostedZone("examplecom", "example.com.", hostedZoneConfig(null))),
-                        Json.createObjectBuilder()
-                                .add("Id", "examplecom")
-                                .add("Name", "example.com.")
-                                .build(),
+                        ImmutableMap.of(
+                                "Id", "examplecom",
+                                "Name", "example.com."),
                         null
                 },
                 // Throw an exception if there're no matching hosted zones
@@ -136,10 +131,9 @@ public class HostedZoneContextProviderMapperTest {
                                 .build(),
                         ClientMockData.get()
                                 .withHostedZone(hostedZone("examplecom", "example.com.", hostedZoneConfig(true))),
-                        Json.createObjectBuilder()
-                                .add("Id", "examplecom")
-                                .add("Name", "example.com.")
-                                .build(),
+                        ImmutableMap.of(
+                                "Id", "examplecom",
+                                "Name", "example.com."),
                         null
                 },
                 // Test privateZone filter: privateZone is false
@@ -166,10 +160,9 @@ public class HostedZoneContextProviderMapperTest {
                                 .build(),
                         ClientMockData.get()
                                 .withHostedZone(hostedZone("examplecom", "example.com."), ImmutableList.of(vpc("vpc-1"))),
-                        Json.createObjectBuilder()
-                                .add("Id", "examplecom")
-                                .add("Name", "example.com.")
-                                .build(),
+                        ImmutableMap.of(
+                                "Id", "examplecom",
+                                "Name", "example.com."),
                         null
                 },
                 // Test privateZone filter: privateZone is false
@@ -190,7 +183,7 @@ public class HostedZoneContextProviderMapperTest {
     }
 
     @Test(dataProvider = "testDataProvider")
-    public void test(HostedZoneContextQuery properties, ClientMockData mockData, JsonValue expectedValue, Class<?> exceptionClass) {
+    public void test(HostedZoneContextQuery properties, ClientMockData mockData, Object expectedValue, Class<?> exceptionClass) {
         Route53Client route53Client = mock(Route53Client.class);
 
         when(route53Client.listHostedZonesByName(any(ListHostedZonesByNameRequest.class)))
@@ -223,7 +216,7 @@ public class HostedZoneContextProviderMapperTest {
                 Assert.assertEquals(e.getClass(), exceptionClass);
             }
         } else {
-            JsonValue contextValue = hostedZoneContextProvider.getContextValue(properties);
+            Object contextValue = hostedZoneContextProvider.getContextValue(properties);
             Assert.assertEquals(expectedValue, contextValue);
         }
 

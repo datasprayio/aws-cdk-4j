@@ -1,5 +1,6 @@
 package io.dataspray.aws.cdk.context;
 
+import com.google.common.collect.ImmutableMap;
 import io.dataspray.aws.cdk.CdkException;
 import software.amazon.awscdk.cloudassembly.schema.HostedZoneContextQuery;
 import software.amazon.awssdk.services.route53.Route53Client;
@@ -9,8 +10,6 @@ import software.amazon.awssdk.services.route53.model.HostedZone;
 import software.amazon.awssdk.services.route53.model.ListHostedZonesByNameRequest;
 import software.amazon.awssdk.services.route53.model.ListHostedZonesByNameResponse;
 
-import javax.json.Json;
-import javax.json.JsonValue;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -25,7 +24,7 @@ public class HostedZoneContextProviderMapper implements ContextProviderMapper<Ho
     }
 
     @Override
-    public JsonValue getContextValue(HostedZoneContextQuery properties) {
+    public Object getContextValue(HostedZoneContextQuery properties) {
         String environment = ContextProviders.buildEnvironment(properties.getAccount(), properties.getRegion());
         String domainName = getDomainName(properties);
         boolean isPrivate = Boolean.TRUE.equals(properties.getPrivateZone());
@@ -63,10 +62,9 @@ public class HostedZoneContextProviderMapper implements ContextProviderMapper<Ho
             }
 
             HostedZone hostedZone = matchedHostedZones.get(0);
-            return Json.createObjectBuilder()
-                    .add("Id", hostedZone.id())
-                    .add("Name", hostedZone.name())
-                    .build();
+            return ImmutableMap.of(
+                    "Id", hostedZone.id(),
+                    "Name", hostedZone.name());
         }
 
     }

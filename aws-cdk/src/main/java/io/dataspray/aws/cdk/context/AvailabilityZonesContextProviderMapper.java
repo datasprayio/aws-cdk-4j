@@ -22,7 +22,7 @@ public class AvailabilityZonesContextProviderMapper implements ContextProviderMa
     }
 
     @Override
-    public JsonValue getContextValue(AvailabilityZonesContextQuery properties) {
+    public Object getContextValue(AvailabilityZonesContextQuery properties) {
         String environment = ContextProviders.buildEnvironment(properties.getAccount(), properties.getRegion());
         try (Ec2Client ec2Client = awsClientProvider.getClient(Ec2Client.class, environment)) {
             return Stream.of(ec2Client.describeAvailabilityZones())
@@ -30,8 +30,7 @@ public class AvailabilityZonesContextProviderMapper implements ContextProviderMa
                     .flatMap(availabilityZone -> availabilityZone.availabilityZones().stream())
                     .filter(availabilityZone -> availabilityZone.state() == AvailabilityZoneState.AVAILABLE)
                     .map(AvailabilityZone::zoneName)
-                    .map(Json::createValue)
-                    .collect(toJsonArray());
+                    .toArray(String[]::new);
         }
     }
 

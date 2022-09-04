@@ -8,8 +8,6 @@ import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
 import software.amazon.awssdk.services.ec2.model.Filter;
 import software.amazon.awssdk.services.ec2.model.Image;
 
-import javax.json.Json;
-import javax.json.JsonValue;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Comparator;
@@ -27,7 +25,7 @@ public class AmiContextProviderMapper implements ContextProviderMapper<AmiContex
     }
 
     @Override
-    public JsonValue getContextValue(AmiContextQuery properties) {
+    public Object getContextValue(AmiContextQuery properties) {
         String environment = ContextProviders.buildEnvironment(properties.getAccount(), properties.getRegion());
         try (Ec2Client ec2Client = awsClientProvider.getClient(Ec2Client.class, environment)) {
             DescribeImagesRequest describeImagesRequest = DescribeImagesRequest.builder()
@@ -41,7 +39,6 @@ public class AmiContextProviderMapper implements ContextProviderMapper<AmiContex
                     .filter(image -> image.imageId() != null)
                     .max(Comparator.comparing(image -> getCreationDate(image).orElse(null), Comparator.nullsFirst(Comparator.naturalOrder())))
                     .map(Image::imageId)
-                    .map(Json::createValue)
                     .orElseThrow(() -> new CdkException("Found 0 AMIs matching the criteria, however at lest 1 is required"));
         }
     }

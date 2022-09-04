@@ -16,8 +16,6 @@ import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
 import software.amazon.awssdk.services.ec2.model.Filter;
 import software.amazon.awssdk.services.ec2.model.Image;
 
-import javax.json.Json;
-import javax.json.JsonValue;
 import java.util.List;
 
 import static org.mockito.Matchers.any;
@@ -82,7 +80,7 @@ public class AmiContextProviderMapperTest {
                                         .imageId("someImageId")
                                         .build())
                                 .build(),
-                        Json.createValue("someImageId")
+                        "someImageId"
                 },
                 {
                         ImmutableList.<Image>builder()
@@ -95,7 +93,7 @@ public class AmiContextProviderMapperTest {
                                         .creationDate("2020-05-14T14:51:00.000Z")
                                         .build())
                                 .build(),
-                        Json.createValue("2020-image-id")
+                        "2020-image-id"
                 },
                 {
                         ImmutableList.<Image>builder()
@@ -107,13 +105,13 @@ public class AmiContextProviderMapperTest {
                                         .imageId("unknownCreationDateImage")
                                         .build())
                                 .build(),
-                        Json.createValue("2020-image-id")
+                        "2020-image-id"
                 }
         };
     }
 
     @Test(dataProvider = "returnedImageIdTestDataProvider")
-    public void testReturnedImageId(List<Image> images, JsonValue expectedValue) {
+    public void testReturnedImageId(List<Image> images, String expectedValue) {
         Ec2Client ec2Client = Mockito.mock(Ec2Client.class);
         when(ec2Client.describeImages(any(DescribeImagesRequest.class)))
                 .thenReturn(DescribeImagesResponse.builder().images(images).build());
@@ -126,7 +124,7 @@ public class AmiContextProviderMapperTest {
                 .filters(ImmutableMap.of())
                 .build();
 
-        JsonValue contextValue = amiContextProvider.getContextValue(properties);
+        Object contextValue = amiContextProvider.getContextValue(properties);
         Assert.assertEquals(contextValue, expectedValue);
     }
 

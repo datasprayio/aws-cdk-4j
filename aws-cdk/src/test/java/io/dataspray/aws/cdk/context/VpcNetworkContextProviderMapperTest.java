@@ -11,6 +11,9 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import software.amazon.awscdk.cloudassembly.schema.VpcContextQuery;
+import software.amazon.awscdk.cxapi.VpcSubnet;
+import software.amazon.awscdk.cxapi.VpcSubnetGroup;
+import software.amazon.awscdk.cxapi.VpcSubnetGroupType;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.DescribeRouteTablesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeRouteTablesResponse;
@@ -33,7 +36,6 @@ import software.amazon.awssdk.services.ec2.model.VpnGateway;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
-import javax.json.JsonObject;
 import javax.json.JsonValue;
 import java.util.Arrays;
 import java.util.List;
@@ -168,20 +170,20 @@ public class VpcNetworkContextProviderMapperTest {
                                 .availabilityZone("az1")
                                 .tags(tag("aws-cdk:subnet-type", "Isolated"))
                                 .build()),
-                        Json.createObjectBuilder()
-                                .add("vpcId", "vpc-1")
-                                .add("vpcCidrBlock", "1.1.1.1/16")
-                                .add("vpnGatewayId", "vpn-gtw-1")
-                                .add("availabilityZones", jsonArray("az1"))
-                                .add("privateSubnetIds", jsonArray("private-subnet-1"))
-                                .add("privateSubnetNames", jsonArray("Private"))
-                                .add("privateSubnetRouteTableIds", jsonArray("private-route-table-1"))
-                                .add("publicSubnetIds", jsonArray("public-subnet-1"))
-                                .add("publicSubnetNames", jsonArray("Public"))
-                                .add("publicSubnetRouteTableIds", jsonArray("public-route-table-1"))
-                                .add("isolatedSubnetIds", jsonArray("isolated-subnet-1"))
-                                .add("isolatedSubnetNames", jsonArray("Isolated"))
-                                .add("isolatedSubnetRouteTableIds", jsonArray("isolated-route-table-1"))
+                        VpcContext.builder()
+                                .vpcId("vpc-1")
+                                .vpcCidrBlock("1.1.1.1/16")
+                                .vpnGatewayId("vpn-gtw-1")
+                                .availabilityZones(ImmutableList.of("az1", "az2"))
+                                .privateSubnetIds(ImmutableList.of("private-subnet-1"))
+                                .privateSubnetNames(ImmutableList.of("Private"))
+                                .privateSubnetRouteTableIds(ImmutableList.of("private-route-table-1"))
+                                .publicSubnetIds(ImmutableList.of("public-subnet-1"))
+                                .publicSubnetNames(ImmutableList.of("Public"))
+                                .publicSubnetRouteTableIds(ImmutableList.of("public-route-table-1"))
+                                .isolatedSubnetIds(ImmutableList.of("isolated-subnet-1"))
+                                .isolatedSubnetNames(ImmutableList.of("Isolated"))
+                                .isolatedSubnetRouteTableIds(ImmutableList.of("isolated-route-table-1"))
                                 .build(),
                         null
                 },
@@ -214,15 +216,14 @@ public class VpcNetworkContextProviderMapperTest {
                                 .availabilityZone("az2")
                                 .tags(tag("aws-cdk:subnet-type", "Public"))
                                 .build()),
-                        Json.createObjectBuilder()
-                                .add("vpcId", "vpc-1")
-                                .add("vpcCidrBlock", "1.1.1.1/16")
-                                .add("vpnGatewayId", "vpn-gtw-1")
-                                .add("availabilityZones", jsonArray("az1", "az2"))
-                                .add("publicSubnetIds", jsonArray("public-subnet-1", "public-subnet-2"))
-                                .add("publicSubnetNames", jsonArray("Public"))
-                                // The number of route table ids must be the same as the number of subnetworks
-                                .add("publicSubnetRouteTableIds", jsonArray("public-route-table-1", "public-route-table-1"))
+                        VpcContext.builder()
+                                .vpcId("vpc-1")
+                                .vpcCidrBlock("1.1.1.1/16")
+                                .vpnGatewayId("vpn-gtw-1")
+                                .availabilityZones(ImmutableList.of("az1", "az2"))
+                                .publicSubnetIds(ImmutableList.of("public-subnet-1", "public-subnet-2"))
+                                .publicSubnetNames(ImmutableList.of("Public"))
+                                .publicSubnetRouteTableIds(ImmutableList.of("public-route-table-1", "public-route-table-1"))
                                 .build(),
                         null
                 },
@@ -255,15 +256,14 @@ public class VpcNetworkContextProviderMapperTest {
                                 .availabilityZone("az1")
                                 .tags(tag("aws-cdk:subnet-type", "Public"), tag("aws-cdk:subnet-name", "name-2"))
                                 .build()),
-                        Json.createObjectBuilder()
-                                .add("vpcId", "vpc-1")
-                                .add("vpcCidrBlock", "1.1.1.1/16")
-                                .add("vpnGatewayId", "vpn-gtw-1")
-                                .add("availabilityZones", jsonArray("az1"))
-                                .add("publicSubnetIds", jsonArray("public-subnet-1", "public-subnet-2"))
-                                .add("publicSubnetNames", jsonArray("name-1", "name-2"))
-                                // The number of route table ids must be the same as the number of subnets
-                                .add("publicSubnetRouteTableIds", jsonArray("public-route-table-1", "public-route-table-1"))
+                        VpcContext.builder()
+                                .vpcId("vpc-1")
+                                .vpcCidrBlock("1.1.1.1/16")
+                                .vpnGatewayId("vpn-gtw-1")
+                                .availabilityZones(ImmutableList.of("az1"))
+                                .publicSubnetIds(ImmutableList.of("public-subnet-1", "public-subnet-2"))
+                                .publicSubnetNames(ImmutableList.of("name-1", "name-2"))
+                                .publicSubnetRouteTableIds(ImmutableList.of("public-route-table-1", "public-route-table-1"))
                                 .build(),
                         null
                 },
@@ -309,15 +309,14 @@ public class VpcNetworkContextProviderMapperTest {
                                         tag("aws-cdk:subnet-name", "different-name-2")
                                 )
                                 .build()),
-                        Json.createObjectBuilder()
-                                .add("vpcId", "vpc-1")
-                                .add("vpcCidrBlock", "1.1.1.1/16")
-                                .add("vpnGatewayId", "vpn-gtw-1")
-                                .add("availabilityZones", jsonArray("az1"))
-                                .add("publicSubnetIds", jsonArray("public-subnet-1", "public-subnet-2"))
-                                .add("publicSubnetNames", jsonArray("name-1", "name-2"))
-                                // The number of route table ids must be the same as the number of subnets
-                                .add("publicSubnetRouteTableIds", jsonArray("public-route-table-1", "public-route-table-1"))
+                        VpcContext.builder()
+                                .vpcId("vpc-1")
+                                .vpcCidrBlock("1.1.1.1/16")
+                                .vpnGatewayId("vpn-gtw-1")
+                                .availabilityZones(ImmutableList.of("az1"))
+                                .publicSubnetIds(ImmutableList.of("public-subnet-1", "public-subnet-2"))
+                                .publicSubnetNames(ImmutableList.of("name-1", "name-2"))
+                                .publicSubnetRouteTableIds(ImmutableList.of("public-route-table-1", "public-route-table-1"))
                                 .build(),
                         null
                 },
@@ -341,14 +340,14 @@ public class VpcNetworkContextProviderMapperTest {
                                 .availabilityZone("az1")
                                 .tags(tag("aws-cdk:subnet-type", "Public"))
                                 .build()),
-                        Json.createObjectBuilder()
-                                .add("vpcId", "vpc-1")
-                                .add("vpcCidrBlock", "1.1.1.1/16")
-                                .add("vpnGatewayId", "vpn-gtw-1")
-                                .add("availabilityZones", jsonArray("az1"))
-                                .add("publicSubnetIds", jsonArray("public-subnet-1"))
-                                .add("publicSubnetNames", jsonArray("Public"))
-                                .add("publicSubnetRouteTableIds", jsonArray("main-route-table"))
+                        VpcContext.builder()
+                                .vpcId("vpc-1")
+                                .vpcCidrBlock("1.1.1.1/16")
+                                .vpnGatewayId("vpn-gtw-1")
+                                .availabilityZones(ImmutableList.of("az1"))
+                                .publicSubnetIds(ImmutableList.of("public-subnet-1"))
+                                .publicSubnetNames(ImmutableList.of("Public"))
+                                .publicSubnetRouteTableIds(ImmutableList.of("main-route-table"))
                                 .build(),
                         null
                 },
@@ -390,14 +389,14 @@ public class VpcNetworkContextProviderMapperTest {
                                 .availabilityZone("az1")
                                 .mapPublicIpOnLaunch(true)
                                 .build()),
-                        Json.createObjectBuilder()
-                                .add("vpcId", "vpc-1")
-                                .add("vpcCidrBlock", "1.1.1.1/16")
-                                .add("vpnGatewayId", "vpn-gtw-1")
-                                .add("availabilityZones", jsonArray("az1"))
-                                .add("publicSubnetIds", jsonArray("public-subnet-1"))
-                                .add("publicSubnetNames", jsonArray("Public"))
-                                .add("publicSubnetRouteTableIds", jsonArray("public-route-table-1"))
+                        VpcContext.builder()
+                                .vpcId("vpc-1")
+                                .vpcCidrBlock("1.1.1.1/16")
+                                .vpnGatewayId("vpn-gtw-1")
+                                .availabilityZones(ImmutableList.of("az1"))
+                                .publicSubnetIds(ImmutableList.of("public-subnet-1"))
+                                .publicSubnetNames(ImmutableList.of("Public"))
+                                .publicSubnetRouteTableIds(ImmutableList.of("public-route-table-1"))
                                 .build(),
                         null
                 },
@@ -421,14 +420,14 @@ public class VpcNetworkContextProviderMapperTest {
                                 .availabilityZone("az1")
                                 .mapPublicIpOnLaunch(false)
                                 .build()),
-                        Json.createObjectBuilder()
-                                .add("vpcId", "vpc-1")
-                                .add("vpcCidrBlock", "1.1.1.1/16")
-                                .add("vpnGatewayId", "vpn-gtw-1")
-                                .add("availabilityZones", jsonArray("az1"))
-                                .add("privateSubnetIds", jsonArray("private-subnet-1"))
-                                .add("privateSubnetNames", jsonArray("Private"))
-                                .add("privateSubnetRouteTableIds", jsonArray("private-route-table-1"))
+                        VpcContext.builder()
+                                .vpcId("vpc-1")
+                                .vpcCidrBlock("1.1.1.1/16")
+                                .vpnGatewayId("vpn-gtw-1")
+                                .availabilityZones(ImmutableList.of("az1"))
+                                .privateSubnetIds(ImmutableList.of("private-subnet-1"))
+                                .privateSubnetNames(ImmutableList.of("Private"))
+                                .privateSubnetRouteTableIds(ImmutableList.of("private-route-table-1"))
                                 .build(),
                         null
                 },
@@ -448,14 +447,14 @@ public class VpcNetworkContextProviderMapperTest {
                                 .associations(routeTableAssociation("public-subnet-1"))
                                 .routes(Route.builder().gatewayId("igw-1").build())
                                 .build()),
-                        Json.createObjectBuilder()
-                                .add("vpcId", "vpc-1")
-                                .add("vpcCidrBlock", "1.1.1.1/16")
-                                .add("vpnGatewayId", "vpn-gtw-1")
-                                .add("availabilityZones", jsonArray("az1"))
-                                .add("publicSubnetIds", jsonArray("public-subnet-1"))
-                                .add("publicSubnetNames", jsonArray("Public"))
-                                .add("publicSubnetRouteTableIds", jsonArray("public-route-table-1"))
+                        VpcContext.builder()
+                                .vpcId("vpc-1")
+                                .vpcCidrBlock("1.1.1.1/16")
+                                .vpnGatewayId("vpn-gtw-1")
+                                .availabilityZones(ImmutableList.of("az1"))
+                                .publicSubnetIds(ImmutableList.of("public-subnet-1"))
+                                .publicSubnetNames(ImmutableList.of("Public"))
+                                .publicSubnetRouteTableIds(ImmutableList.of("public-route-table-1"))
                                 .build(),
                         null
                 },
@@ -482,14 +481,14 @@ public class VpcNetworkContextProviderMapperTest {
                                 .vpcId("vpc-1")
                                 .availabilityZone("az1")
                                 .build()),
-                        Json.createObjectBuilder()
-                                .add("vpcId", "vpc-1")
-                                .add("vpcCidrBlock", "1.1.1.1/16")
-                                .add("vpnGatewayId", "vpn-gtw-1")
-                                .add("availabilityZones", jsonArray("az1"))
-                                .add("publicSubnetIds", jsonArray("public-subnet-1"))
-                                .add("publicSubnetNames", jsonArray("Public"))
-                                .add("publicSubnetRouteTableIds", jsonArray("public-route-table-1"))
+                        VpcContext.builder()
+                                .vpcId("vpc-1")
+                                .vpcCidrBlock("1.1.1.1/16")
+                                .vpnGatewayId("vpn-gtw-1")
+                                .availabilityZones(ImmutableList.of("az1"))
+                                .publicSubnetIds(ImmutableList.of("public-subnet-1"))
+                                .publicSubnetNames(ImmutableList.of("Public"))
+                                .publicSubnetRouteTableIds(ImmutableList.of("public-route-table-1"))
                                 .build(),
                         null
                 },
@@ -516,14 +515,14 @@ public class VpcNetworkContextProviderMapperTest {
                                 .vpcId("vpc-1")
                                 .availabilityZone("az1")
                                 .build()),
-                        Json.createObjectBuilder()
-                                .add("vpcId", "vpc-1")
-                                .add("vpcCidrBlock", "1.1.1.1/16")
-                                .add("vpnGatewayId", "vpn-gtw-1")
-                                .add("availabilityZones", jsonArray("az1"))
-                                .add("privateSubnetIds", jsonArray("private-subnet-1"))
-                                .add("privateSubnetNames", jsonArray("Private"))
-                                .add("privateSubnetRouteTableIds", jsonArray("private-route-table-1"))
+                        VpcContext.builder()
+                                .vpcId("vpc-1")
+                                .vpcCidrBlock("1.1.1.1/16")
+                                .vpnGatewayId("vpn-gtw-1")
+                                .availabilityZones(ImmutableList.of("az1"))
+                                .privateSubnetIds(ImmutableList.of("private-subnet-1"))
+                                .privateSubnetNames(ImmutableList.of("Private"))
+                                .privateSubnetRouteTableIds(ImmutableList.of("private-route-table-1"))
                                 .build(),
                         null
                 },
@@ -625,49 +624,45 @@ public class VpcNetworkContextProviderMapperTest {
                                 .cidrBlock("1.1.3.1/24")
                                 .tags(tag("aws-cdk:subnet-type", "Isolated"))
                                 .build()),
-                        Json.createObjectBuilder()
-                                .add("vpcId", "vpc-1")
-                                .add("vpcCidrBlock", "1.1.1.1/16")
-                                .add("vpnGatewayId", "vpn-gtw-1")
-                                .add("availabilityZones", jsonArray())
-                                .add("subnetGroups", jsonArray(
-                                        Json.createObjectBuilder()
-                                                .add("name", "Private")
-                                                .add("type", "Private")
-                                                .add("subnets", jsonArray(
-                                                        Json.createObjectBuilder()
-                                                                .add("subnetId", "private-subnet-1")
-                                                                .add("availabilityZone", "az1")
-                                                                .add("cidr", "1.1.1.1/24")
-                                                                .add("routeTableId", "private-route-table-1")
-                                                                .build()
-                                                ))
+                        VpcContext.builder()
+                                .vpcId("vpc-1")
+                                .vpcCidrBlock("1.1.1.1/16")
+                                .vpnGatewayId("vpn-gtw-1")
+                                .availabilityZones(ImmutableList.of())
+                                .subnetGroups(ImmutableList.of(
+                                        VpcSubnetGroup.builder()
+                                                .name("PRIVATE")
+                                                .type(VpcSubnetGroupType.PRIVATE)
+                                                .subnets(ImmutableList.of(
+                                                        VpcSubnet.builder()
+                                                                .subnetId("private-subnet-1")
+                                                                .availabilityZone("az1")
+                                                                .cidr("1.1.1.1/24")
+                                                                .routeTableId("private-route-table-1")
+                                                                .build()))
                                                 .build(),
-                                        Json.createObjectBuilder()
-                                                .add("name", "Public")
-                                                .add("type", "Public")
-                                                .add("subnets", jsonArray(
-                                                        Json.createObjectBuilder()
-                                                                .add("subnetId", "public-subnet-1")
-                                                                .add("availabilityZone", "az1")
-                                                                .add("cidr", "1.1.2.1/24")
-                                                                .add("routeTableId", "public-route-table-1")
-                                                                .build()
-                                                ))
+                                        VpcSubnetGroup.builder()
+                                                .name("PUBLIC")
+                                                .type(VpcSubnetGroupType.PUBLIC)
+                                                .subnets(ImmutableList.of(
+                                                        VpcSubnet.builder()
+                                                                .subnetId("public-subnet-1")
+                                                                .availabilityZone("az1")
+                                                                .cidr("1.1.2.1/24")
+                                                                .routeTableId("public-route-table-1")
+                                                                .build()))
                                                 .build(),
-                                        Json.createObjectBuilder()
-                                                .add("name", "Isolated")
-                                                .add("type", "Isolated")
-                                                .add("subnets", jsonArray(
-                                                        Json.createObjectBuilder()
-                                                                .add("subnetId", "isolated-subnet-1")
-                                                                .add("availabilityZone", "az1")
-                                                                .add("cidr", "1.1.3.1/24")
-                                                                .add("routeTableId", "isolated-route-table-1")
-                                                                .build()
-                                                ))
-                                                .build()
-                                ))
+                                        VpcSubnetGroup.builder()
+                                                .name("ISOLATED")
+                                                .type(VpcSubnetGroupType.ISOLATED)
+                                                .subnets(ImmutableList.of(
+                                                        VpcSubnet.builder()
+                                                                .subnetId("isolated-subnet-1")
+                                                                .availabilityZone("az1")
+                                                                .cidr("1.1.3.1/24")
+                                                                .routeTableId("isolated-route-table-1")
+                                                                .build()))
+                                                .build()))
                                 .build(),
                         null
                 },
@@ -714,49 +709,46 @@ public class VpcNetworkContextProviderMapperTest {
                                 .cidrBlock("1.1.4.1/24")
                                 .tags(tag("aws-cdk:subnet-type", "Public"))
                                 .build()),
-                        Json.createObjectBuilder()
-                                .add("vpcId", "vpc-1")
-                                .add("vpcCidrBlock", "1.1.1.1/16")
-                                .add("vpnGatewayId", "vpn-gtw-1")
-                                .add("availabilityZones", jsonArray())
-                                .add("subnetGroups", jsonArray(
-                                        Json.createObjectBuilder()
-                                                .add("name", "Private")
-                                                .add("type", "Private")
-                                                .add("subnets", jsonArray(
-                                                        Json.createObjectBuilder()
-                                                                .add("subnetId", "private-subnet-1")
-                                                                .add("availabilityZone", "az1")
-                                                                .add("cidr", "1.1.1.1/24")
-                                                                .add("routeTableId", "main")
-                                                                .build()
-                                                ))
+                        VpcContext.builder()
+                                .vpcId("vpc-1")
+                                .vpcCidrBlock("1.1.1.1/16")
+                                .vpnGatewayId("vpn-gtw-1")
+                                .availabilityZones(ImmutableList.of())
+                                .subnetGroups(ImmutableList.of(
+                                        VpcSubnetGroup.builder()
+                                                .name("internal")
+                                                .type(VpcSubnetGroupType.PRIVATE)
+                                                .subnets(ImmutableList.of(
+                                                        VpcSubnet.builder()
+                                                                .subnetId("private-subnet-1")
+                                                                .availabilityZone("az1")
+                                                                .cidr("1.1.1.1/24")
+                                                                .routeTableId("main")
+                                                                .build()))
                                                 .build(),
-                                        Json.createObjectBuilder()
-                                                .add("name", "Public")
-                                                .add("type", "Public")
-                                                .add("subnets", jsonArray(
-                                                        Json.createObjectBuilder()
-                                                                .add("subnetId", "public-subnet-1")
-                                                                .add("availabilityZone", "az1")
-                                                                .add("cidr", "1.1.2.1/24")
-                                                                .add("routeTableId", "main")
+                                        VpcSubnetGroup.builder()
+                                                .name("public-1")
+                                                .type(VpcSubnetGroupType.PUBLIC)
+                                                .subnets(ImmutableList.of(
+                                                        VpcSubnet.builder()
+                                                                .subnetId("public-subnet-1")
+                                                                .availabilityZone("az1")
+                                                                .cidr("1.1.2.1/24")
+                                                                .routeTableId("main")
                                                                 .build(),
-                                                        Json.createObjectBuilder()
-                                                                .add("subnetId", "public-subnet-2")
-                                                                .add("availabilityZone", "az2")
-                                                                .add("cidr", "1.1.3.1/24")
-                                                                .add("routeTableId", "main")
+                                                        VpcSubnet.builder()
+                                                                .subnetId("public-subnet-2")
+                                                                .availabilityZone("az2")
+                                                                .cidr("1.1.3.1/24")
+                                                                .routeTableId("main")
                                                                 .build(),
-                                                        Json.createObjectBuilder()
-                                                                .add("subnetId", "public-subnet-3")
-                                                                .add("availabilityZone", "az3")
-                                                                .add("cidr", "1.1.4.1/24")
-                                                                .add("routeTableId", "main")
-                                                                .build()
-                                                ))
-                                                .build()
-                                ))
+                                                        VpcSubnet.builder()
+                                                                .subnetId("public-subnet-3")
+                                                                .availabilityZone("az3")
+                                                                .cidr("1.1.4.1/24")
+                                                                .routeTableId("main")
+                                                                .build()))
+                                                .build()))
                                 .build(),
                         null
                 },
@@ -796,49 +788,45 @@ public class VpcNetworkContextProviderMapperTest {
                                 .cidrBlock("1.1.3.1/24")
                                 .tags(tag("aws-cdk:subnet-type", "Public"), tag("aws-cdk:subnet-name", "public-2"))
                                 .build()),
-                        Json.createObjectBuilder()
-                                .add("vpcId", "vpc-1")
-                                .add("vpcCidrBlock", "1.1.1.1/16")
-                                .add("vpnGatewayId", "vpn-gtw-1")
-                                .add("availabilityZones", jsonArray())
-                                .add("subnetGroups", jsonArray(
-                                        Json.createObjectBuilder()
-                                                .add("name", "internal")
-                                                .add("type", "Private")
-                                                .add("subnets", jsonArray(
-                                                        Json.createObjectBuilder()
-                                                                .add("subnetId", "private-subnet-1")
-                                                                .add("availabilityZone", "az1")
-                                                                .add("cidr", "1.1.1.1/24")
-                                                                .add("routeTableId", "main")
-                                                                .build()
-                                                ))
+                        VpcContext.builder()
+                                .vpcId("vpc-1")
+                                .vpcCidrBlock("1.1.1.1/16")
+                                .vpnGatewayId("vpn-gtw-1")
+                                .availabilityZones(ImmutableList.of())
+                                .subnetGroups(ImmutableList.of(
+                                        VpcSubnetGroup.builder()
+                                                .name("internal")
+                                                .type(VpcSubnetGroupType.PRIVATE)
+                                                .subnets(ImmutableList.of(
+                                                        VpcSubnet.builder()
+                                                                .subnetId("private-subnet-1")
+                                                                .availabilityZone("az1")
+                                                                .cidr("1.1.1.1/24")
+                                                                .routeTableId("main")
+                                                                .build()))
                                                 .build(),
-                                        Json.createObjectBuilder()
-                                                .add("name", "public-1")
-                                                .add("type", "Public")
-                                                .add("subnets", jsonArray(
-                                                        Json.createObjectBuilder()
-                                                                .add("subnetId", "public-subnet-1")
-                                                                .add("availabilityZone", "az1")
-                                                                .add("cidr", "1.1.2.1/24")
-                                                                .add("routeTableId", "main")
-                                                                .build()
-                                                ))
+                                        VpcSubnetGroup.builder()
+                                                .name("public-1")
+                                                .type(VpcSubnetGroupType.PUBLIC)
+                                                .subnets(ImmutableList.of(
+                                                        VpcSubnet.builder()
+                                                                .subnetId("public-subnet-1")
+                                                                .availabilityZone("az1")
+                                                                .cidr("1.1.2.1/24")
+                                                                .routeTableId("main")
+                                                                .build()))
                                                 .build(),
-                                        Json.createObjectBuilder()
-                                                .add("name", "public-2")
-                                                .add("type", "Public")
-                                                .add("subnets", jsonArray(
-                                                        Json.createObjectBuilder()
-                                                                .add("subnetId", "public-subnet-2")
-                                                                .add("availabilityZone", "az2")
-                                                                .add("cidr", "1.1.3.1/24")
-                                                                .add("routeTableId", "main")
-                                                                .build()
-                                                ))
-                                                .build()
-                                ))
+                                        VpcSubnetGroup.builder()
+                                                .name("public-2")
+                                                .type(VpcSubnetGroupType.PUBLIC)
+                                                .subnets(ImmutableList.of(
+                                                        VpcSubnet.builder()
+                                                                .subnetId("public-subnet-2")
+                                                                .availabilityZone("az2")
+                                                                .cidr("1.1.3.1/24")
+                                                                .routeTableId("main")
+                                                                .build()))
+                                                .build()))
                                 .build(),
                         null
                 },
@@ -879,49 +867,45 @@ public class VpcNetworkContextProviderMapperTest {
                                 .cidrBlock("1.1.3.1/24")
                                 .tags(tag("aws-cdk:subnet-type", "Public"), tag("group-name", "public-2"))
                                 .build()),
-                        Json.createObjectBuilder()
-                                .add("vpcId", "vpc-1")
-                                .add("vpcCidrBlock", "1.1.1.1/16")
-                                .add("vpnGatewayId", "vpn-gtw-1")
-                                .add("availabilityZones", jsonArray())
-                                .add("subnetGroups", jsonArray(
-                                        Json.createObjectBuilder()
-                                                .add("name", "internal")
-                                                .add("type", "Private")
-                                                .add("subnets", jsonArray(
-                                                        Json.createObjectBuilder()
-                                                                .add("subnetId", "private-subnet-1")
-                                                                .add("availabilityZone", "az1")
-                                                                .add("cidr", "1.1.1.1/24")
-                                                                .add("routeTableId", "main")
-                                                                .build()
-                                                ))
+                        VpcContext.builder()
+                                .vpcId("vpc-1")
+                                .vpcCidrBlock("1.1.1.1/16")
+                                .vpnGatewayId("vpn-gtw-1")
+                                .availabilityZones(ImmutableList.of())
+                                .subnetGroups(ImmutableList.of(
+                                        VpcSubnetGroup.builder()
+                                                .name("internal")
+                                                .type(VpcSubnetGroupType.PRIVATE)
+                                                .subnets(ImmutableList.of(
+                                                        VpcSubnet.builder()
+                                                                .subnetId("private-subnet-1")
+                                                                .availabilityZone("az1")
+                                                                .cidr("1.1.1.1/24")
+                                                                .routeTableId("main")
+                                                                .build()))
                                                 .build(),
-                                        Json.createObjectBuilder()
-                                                .add("name", "public-1")
-                                                .add("type", "Public")
-                                                .add("subnets", jsonArray(
-                                                        Json.createObjectBuilder()
-                                                                .add("subnetId", "public-subnet-1")
-                                                                .add("availabilityZone", "az1")
-                                                                .add("cidr", "1.1.2.1/24")
-                                                                .add("routeTableId", "main")
-                                                                .build()
-                                                ))
+                                        VpcSubnetGroup.builder()
+                                                .name("public-1")
+                                                .type(VpcSubnetGroupType.PUBLIC)
+                                                .subnets(ImmutableList.of(
+                                                        VpcSubnet.builder()
+                                                                .subnetId("public-subnet-1")
+                                                                .availabilityZone("az1")
+                                                                .cidr("1.1.2.1/24")
+                                                                .routeTableId("main")
+                                                                .build()))
                                                 .build(),
-                                        Json.createObjectBuilder()
-                                                .add("name", "public-2")
-                                                .add("type", "Public")
-                                                .add("subnets", jsonArray(
-                                                        Json.createObjectBuilder()
-                                                                .add("subnetId", "public-subnet-2")
-                                                                .add("availabilityZone", "az2")
-                                                                .add("cidr", "1.1.3.1/24")
-                                                                .add("routeTableId", "main")
-                                                                .build()
-                                                ))
-                                                .build()
-                                ))
+                                        VpcSubnetGroup.builder()
+                                                .name("public-2")
+                                                .type(VpcSubnetGroupType.PUBLIC)
+                                                .subnets(ImmutableList.of(
+                                                        VpcSubnet.builder()
+                                                                .subnetId("public-subnet-2")
+                                                                .availabilityZone("az2")
+                                                                .cidr("1.1.3.1/24")
+                                                                .routeTableId("main")
+                                                                .build()))
+                                                .build()))
                                 .build(),
                         null
                 },
@@ -955,7 +939,7 @@ public class VpcNetworkContextProviderMapperTest {
     }
 
     @Test(dataProvider = "testDataProvider")
-    public void test(VpcContextQuery properties, ClientMockData data, JsonObject expectedValue, Class<? extends Exception> exceptionType) {
+    public void test(VpcContextQuery properties, ClientMockData data, Object expectedValue, Class<? extends Exception> exceptionType) {
         Ec2Client ec2Client = mock(Ec2Client.class);
         when(ec2Client.describeVpcs(any(DescribeVpcsRequest.class)))
                 .thenReturn(DescribeVpcsResponse.builder().vpcs(data.getVpcs()).build());
@@ -979,9 +963,8 @@ public class VpcNetworkContextProviderMapperTest {
                 Assert.assertEquals(exception.getClass(), exceptionType);
             }
         } else {
-            JsonValue contextValue = contextProvider.getContextValue(properties);
-            Assert.assertEquals(contextValue.getValueType(), JsonValue.ValueType.OBJECT);
-            Assert.assertEquals(contextValue.asJsonObject(), expectedValue);
+            Object contextValue = contextProvider.getContextValue(properties);
+            Assert.assertEquals(contextValue, expectedValue);
         }
 
 

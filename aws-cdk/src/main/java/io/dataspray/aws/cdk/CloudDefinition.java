@@ -1,28 +1,27 @@
 package io.dataspray.aws.cdk;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr353.JSR353Module;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awscdk.cloudassembly.schema.ArtifactManifest;
 import software.amazon.awscdk.cloudassembly.schema.ArtifactType;
 import software.amazon.awscdk.cloudassembly.schema.AssemblyManifest;
 import software.amazon.awscdk.cloudassembly.schema.AssetManifestProperties;
-import software.amazon.awscdk.cloudassembly.schema.AwsCloudFormationStackProperties;
+import software.amazon.awscdk.cloudassembly.schema.ContainerImageAssetMetadataEntry;
 import software.amazon.awscdk.cloudassembly.schema.DockerImageAsset;
 import software.amazon.awscdk.cloudassembly.schema.FileAsset;
+import software.amazon.awscdk.cloudassembly.schema.FileAssetMetadataEntry;
 import software.amazon.awscdk.cloudassembly.schema.Manifest;
 import software.amazon.awscdk.cxapi.CloudAssembly;
+import software.amazon.jsii.JsiiObject;
+import software.amazon.jsii.Kernel;
+import software.amazon.jsii.NativeType;
+import software.amazon.jsii.UnsafeCast;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -106,7 +105,7 @@ public class CloudDefinition {
         if (assemblyManifest.getArtifacts() != null) {
             assemblyManifest.getArtifacts().values().stream()
                     .filter(artifactManifest -> ArtifactType.ASSET_MANIFEST.equals(artifactManifest.getType()))
-                    .map(artifactManifest -> JsiiUtil.getProperty(artifactManifest, "properties", AssetManifestProperties.class))
+                    .map(artifactManifest -> UnsafeCast.unsafeCast((JsiiObject) artifactManifest.getProperties(), AssetManifestProperties.class))
                     .map(AssetManifestProperties::getFile)
                     .map(assetManifestFile -> Manifest.loadAssetManifest(cloudAssemblyDirectory.resolve(assetManifestFile).toString()))
                     .forEach(assetManifest -> {
@@ -126,20 +125,45 @@ public class CloudDefinition {
                     Integer requiredToolkitStackVersion = Optional.ofNullable(stack.getRequiresBootstrapStackVersion())
                             .map(Number::intValue)
                             .orElse(null);
-                    Map<String, Object> template = (Map<String, Object>)stack.getTemplate();
+                    Map<String, Object> template = (Map<String, Object>) stack.getTemplate();
                     Map<String, Map<String, Object>> resources = (Map<String, Map<String, Object>>) template.getOrDefault("Resources", ImmutableMap.of());
                     Map<String, ParameterDefinition> parameters = getParameterDefinitions(template);
                     Map<String, String> parameterValues = stack.getParameters();
 
+                    List<FileAssetMetadataEntry> stackFileAssets = Lists.newArrayList();
+                    List<ContainerImageAssetMetadataEntry> stackImageAssets = Lists.newArrayList();
+                    stack.findMetadataByType(MetadataTypes.ASSET).forEach(entry -> {
+                        if (entry.getData() == null) {
+                            return;
+                        }
+                        String packaging = Kernel.get(entry.getData(), "packaging", NativeType.forClass(String.class));
+                        if (entry.getData() == null) {
+                            throw new CdkException("Manifest asset with missing packaging under data for path " + entry.getPath());
+                        }
+                        switch (packaging) {
+                            case AssetDeployer.ZIP_PACKAGING:
+                            case AssetDeployer.FILE_PACKAGING:
+                                stackFileAssets.add(UnsafeCast.unsafeCast((JsiiObject) entry.getData(), FileAssetMetadataEntry.class));
+                                break;
+                            case AssetDeployer.IMAGE_PACKAGING:
+                                stackImageAssets.add(UnsafeCast.unsafeCast((JsiiObject) entry.getData(), ContainerImageAssetMetadataEntry.class));
+                                break;
+                            default:
+                                throw new CdkException("Unknown manifest asset packaging type " + packaging + " for path " + entry.getPath());
+                        }
+                    });
+
                     return StackDefinition.builder()
-                            .withStackName(stackName)
-                            .withTemplate(template)
-                            .withEnvironment("aws://"+stack.getEnvironment().getAccount()+"/" + stack.getEnvironment().getRegion())
-                            .withRequiredToolkitStackVersion(requiredToolkitStackVersion)
-                            .withParameters(parameters)
-                            .withParameterValues(parameterValues)
-                            .withResources(resources)
-                            .withDependencies(stack.getManifest().getDependencies())
+                            .stackName(stackName)
+                            .template(template)
+                            .fileAssets(stackFileAssets)
+                            .imageAssets(stackImageAssets)
+                            .environment("aws://" + stack.getEnvironment().getAccount() + "/" + stack.getEnvironment().getRegion())
+                            .requiredToolkitStackVersion(requiredToolkitStackVersion)
+                            .parameters(parameters)
+                            .parameterValues(parameterValues)
+                            .resources(resources)
+                            .dependencies(stack.getManifest().getDependencies() != null ? stack.getManifest().getDependencies() : ImmutableList.of())
                             .build();
                 })
                 .collect(Collectors.toMap(StackDefinition::getStackName, Function.identity()));

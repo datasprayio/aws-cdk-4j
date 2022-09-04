@@ -10,8 +10,6 @@ import software.amazon.awssdk.services.ec2.model.AvailabilityZone;
 import software.amazon.awssdk.services.ec2.model.AvailabilityZoneState;
 import software.amazon.awssdk.services.ec2.model.DescribeAvailabilityZonesResponse;
 
-import javax.json.Json;
-import javax.json.JsonValue;
 import java.util.List;
 
 import static org.mockito.Matchers.any;
@@ -26,14 +24,14 @@ public class AvailabilityZonesContextProviderMapperTest {
         return new Object[][]{
                 {
                         ImmutableList.of(),
-                        JsonValue.EMPTY_JSON_ARRAY
+                        new String[]{}
                 },
                 {
                         ImmutableList.of(
                                 availabilityZone("us-west-2a", UNAVAILABLE),
                                 availabilityZone("us-west-2b", UNAVAILABLE)
                         ),
-                        JsonValue.EMPTY_JSON_ARRAY
+                        new String[]{}
                 },
                 {
                         ImmutableList.of(
@@ -44,17 +42,17 @@ public class AvailabilityZonesContextProviderMapperTest {
                                 availabilityZone("us-west-2e", IMPAIRED),
                                 availabilityZone("us-west-2f", INFORMATION)
                         ),
-                        Json.createArrayBuilder()
-                                .add("us-west-2a")
-                                .add("us-west-2b")
-                                .add("us-west-2d")
-                                .build()
+                        new String[]{
+                                "us-west-2a",
+                                "us-west-2b",
+                                "us-west-2d"
+                        }
                 }
         };
     }
 
     @Test(dataProvider = "testDataProvider")
-    public void test(List<AvailabilityZone> availabilityZones, JsonValue expectedValue) {
+    public void test(List<AvailabilityZone> availabilityZones, String[] expectedValue) {
         Ec2Client ec2Client = mock(Ec2Client.class);
         DescribeAvailabilityZonesResponse response = DescribeAvailabilityZonesResponse.builder()
                 .availabilityZones(availabilityZones)
@@ -72,7 +70,7 @@ public class AvailabilityZonesContextProviderMapperTest {
                 .account("someAccount")
                 .build();
 
-        JsonValue contextValue = contextProvider.getContextValue(properties);
+        Object contextValue = contextProvider.getContextValue(properties);
         Assert.assertEquals(contextValue, expectedValue);
     }
 

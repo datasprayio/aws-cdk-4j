@@ -16,7 +16,6 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -59,14 +58,14 @@ public class FileAssetPublisher {
     /**
      * Uploads a string as a file (zipping it before uploading) to S3 bucket.
      *
-     * @param content the content of the file
+     * @param data the content of the file
      * @param objectName the name of the object in the bucket
      * @param bucketName the name of the bucket
      * @throws IOException if I/O error occurs while uploading a file or directory
      */
     public void publish(byte[] data, String objectName, String bucketName, ResolvedEnvironment environment) throws IOException {
         logger.info("Publishing inline content asset, bucketName={}, objectName={}", bucketName, objectName);
-            publishFile(data, objectName, bucketName, environment);
+        publishFile(data, objectName, bucketName, environment);
     }
 
     /**

@@ -1,9 +1,5 @@
 package io.dataspray.aws.cdk;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr353.JSR353Module;
 import com.google.common.base.Strings;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -22,11 +18,6 @@ import java.util.Optional;
 public abstract class AbstractCdkMojo extends AbstractMojo {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractCdkMojo.class);
-
-    static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .registerModule(new JSR353Module());
 
     @Parameter(defaultValue = "${settings}", required = true, readonly = true)
     private Settings settings;

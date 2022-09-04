@@ -11,9 +11,6 @@ import software.amazon.awssdk.services.ssm.model.GetParameterResponse;
 import software.amazon.awssdk.services.ssm.model.Parameter;
 import software.amazon.awssdk.services.ssm.model.ParameterNotFoundException;
 
-import javax.json.Json;
-import javax.json.JsonValue;
-
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -38,8 +35,8 @@ public class SsmContextProviderMapperTest {
                 .account("someAccount")
                 .parameterName("name")
                 .build();
-        JsonValue contextValue = ssmContextProvider.getContextValue(properties);
-        Assert.assertEquals(contextValue, Json.createValue("value"));
+        Object contextValue = ssmContextProvider.getContextValue(properties);
+        Assert.assertEquals(contextValue, "value");
     }
 
     @Test(expectedExceptions = CdkException.class)

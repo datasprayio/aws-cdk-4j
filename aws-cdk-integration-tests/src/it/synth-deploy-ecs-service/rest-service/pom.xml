@@ -42,7 +42,8 @@
                                 </filter>
                             </filters>
                             <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>io.dataspray.aws.cdk.maven.it.RestApp</mainClass>
                                 </transformer>
                             </transformers>

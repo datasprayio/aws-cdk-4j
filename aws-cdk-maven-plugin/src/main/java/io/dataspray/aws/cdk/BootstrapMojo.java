@@ -5,6 +5,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -21,6 +22,18 @@ public class BootstrapMojo extends AbstractCdkMojo {
     private String toolkitStackName;
 
     /**
+     * Input parameters for the bootstrap stack. In the case of an update, existing values will be reused.
+     */
+    @Parameter
+    private Map<String, String> bootstrapParameters;
+
+    /**
+     * Tags that will be added to the bootstrap stack.
+     */
+    @Parameter
+    private Map<String, String> bootstrapTags;
+
+    /**
      * Stacks, for which bootstrapping will be performed if it's required.
      */
     @Parameter(property = "aws.cdk.stacks")
@@ -28,6 +41,6 @@ public class BootstrapMojo extends AbstractCdkMojo {
 
     @Override
     public void execute(Path cloudAssemblyDirectory, Optional<String> profileOpt, boolean isInteractive) {
-        AwsCdk.bootstrap().execute(cloudAssemblyDirectory, toolkitStackName, stacks, profileOpt, isInteractive);
+        AwsCdk.bootstrap().execute(cloudAssemblyDirectory, toolkitStackName, stacks, bootstrapParameters, bootstrapTags, profileOpt, isInteractive);
     }
 }
