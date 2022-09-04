@@ -31,7 +31,7 @@ try {
     assert stage == "test"
 
     def toolkitStack = Stacks.findStack(cfnClient, TOOLKIT_STACK_NAME).orElse(null);
-    assert toolkitStack?.stackStatus() == StackStatus.CREATE_COMPLETE
+    assert toolkitStack?.stackStatus() == null
 } finally {
     def stack = Stacks.findStack(cfnClient, STACK_NAME)
             .map { s -> Stacks.deleteStack(cfnClient, s.stackName()) }
