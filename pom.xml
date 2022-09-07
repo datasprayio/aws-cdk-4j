@@ -4,7 +4,7 @@
 
     <groupId>io.dataspray</groupId>
     <artifactId>aws-cdk-parent</artifactId>
-    <version>1.2.0-SNAPSHOT</version>
+    <version>1.2.1</version>
     <packaging>pom</packaging>
 
     <name>AWS CDK Parent</name>
@@ -34,7 +34,7 @@
         <connection>scm:git:git@github.com:datasprayio/aws-cdk.git</connection>
         <developerConnection>scm:git:git@github.com:datasprayio/aws-cdk.git</developerConnection>
         <url>https://github.com/datasprayio/aws-cdk</url>
-        <tag>HEAD</tag>
+        <tag>1.2.1</tag>
     </scm>
 
     <modules>
