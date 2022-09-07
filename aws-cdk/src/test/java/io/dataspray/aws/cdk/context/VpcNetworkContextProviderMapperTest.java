@@ -58,6 +58,7 @@ public class VpcNetworkContextProviderMapperTest {
                         VpcContextQuery.builder()
                                 .region("someRegion")
                                 .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .build(),
                         DescribeVpcsRequest.builder()
                                 .filters(ImmutableList.of())
@@ -67,6 +68,7 @@ public class VpcNetworkContextProviderMapperTest {
                         VpcContextQuery.builder()
                                 .region("someRegion")
                                 .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .filter(ImmutableMap.<String, String>builder()
                                         .put("filter-1", "filter-1-value")
                                         .put("filter-2", "filter-2-value")
@@ -121,6 +123,7 @@ public class VpcNetworkContextProviderMapperTest {
                         VpcContextQuery.builder()
                                 .region("someRegion")
                                 .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .build(),
                         ClientMockData.get()
                                 .withVpc(vpc("vpc-1", "1.1.1.1/16"))
@@ -133,6 +136,7 @@ public class VpcNetworkContextProviderMapperTest {
                         VpcContextQuery.builder()
                                 .region("someRegion")
                                 .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .build(),
                         ClientMockData.get()
                                 .withVpc(vpc("vpc-1", "1.1.1.1/16"))
@@ -192,6 +196,7 @@ public class VpcNetworkContextProviderMapperTest {
                         VpcContextQuery.builder()
                                 .region("someRegion")
                                 .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .build(),
                         ClientMockData.get()
                                 .withVpc(vpc("vpc-1", "1.1.1.1/16"))
@@ -232,6 +237,7 @@ public class VpcNetworkContextProviderMapperTest {
                         VpcContextQuery.builder()
                                 .region("someRegion")
                                 .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .build(),
                         ClientMockData.get()
                                 .withVpc(vpc("vpc-1", "1.1.1.1/16"))
@@ -325,6 +331,7 @@ public class VpcNetworkContextProviderMapperTest {
                         VpcContextQuery.builder()
                                 .region("someRegion")
                                 .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .build(),
                         ClientMockData.get()
                                 .withVpc(vpc("vpc-1", "1.1.1.1/16"))
@@ -356,6 +363,7 @@ public class VpcNetworkContextProviderMapperTest {
                         VpcContextQuery.builder()
                                 .region("someRegion")
                                 .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .build(),
                         ClientMockData.get()
                                 .withVpc(vpc("vpc-1", "1.1.1.1/16"))
@@ -374,6 +382,7 @@ public class VpcNetworkContextProviderMapperTest {
                         VpcContextQuery.builder()
                                 .region("someRegion")
                                 .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .build(),
                         ClientMockData.get()
                                 .withVpc(vpc("vpc-1", "1.1.1.1/16"))
@@ -405,6 +414,7 @@ public class VpcNetworkContextProviderMapperTest {
                         VpcContextQuery.builder()
                                 .region("someRegion")
                                 .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .build(),
                         ClientMockData.get()
                                 .withVpc(vpc("vpc-1", "1.1.1.1/16"))
@@ -436,6 +446,7 @@ public class VpcNetworkContextProviderMapperTest {
                         VpcContextQuery.builder()
                                 .region("someRegion")
                                 .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .build(),
                         ClientMockData.get()
                                 .withVpc(vpc("vpc-1", "1.1.1.1/16"))
@@ -463,6 +474,7 @@ public class VpcNetworkContextProviderMapperTest {
                         VpcContextQuery.builder()
                                 .region("someRegion")
                                 .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .build(),
                         ClientMockData.get()
                                 .withVpc(vpc("vpc-1", "1.1.1.1/16"))
@@ -497,6 +509,7 @@ public class VpcNetworkContextProviderMapperTest {
                         VpcContextQuery.builder()
                                 .region("someRegion")
                                 .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .build(),
                         ClientMockData.get()
                                 .withVpc(vpc("vpc-1", "1.1.1.1/16"))
@@ -531,6 +544,7 @@ public class VpcNetworkContextProviderMapperTest {
                         VpcContextQuery.builder()
                                 .region("someRegion")
                                 .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .build(),
                         ClientMockData.get()
                                 .withVpc(vpc("vpc-1", "1.1.1.1/16"))
@@ -583,6 +597,7 @@ public class VpcNetworkContextProviderMapperTest {
                         VpcContextQuery.builder()
                                 .region("someRegion")
                                 .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .returnAsymmetricSubnets(true)
                                 .build(),
                         ClientMockData.get()
@@ -671,6 +686,7 @@ public class VpcNetworkContextProviderMapperTest {
                         VpcContextQuery.builder()
                                 .region("someRegion")
                                 .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .returnAsymmetricSubnets(true)
                                 .build(),
                         ClientMockData.get()
@@ -757,6 +773,7 @@ public class VpcNetworkContextProviderMapperTest {
                         VpcContextQuery.builder()
                                 .region("someRegion")
                                 .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .returnAsymmetricSubnets(true)
                                 .build(),
                         ClientMockData.get()
@@ -835,6 +852,7 @@ public class VpcNetworkContextProviderMapperTest {
                         VpcContextQuery.builder()
                                 .region("someRegion")
                                 .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .returnAsymmetricSubnets(true)
                                 .subnetGroupNameTag("group-name")
                                 .build(),
