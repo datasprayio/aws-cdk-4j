@@ -1,8 +1,11 @@
 package io.dataspray.aws.cdk;
 
 import com.google.common.collect.Maps;
+import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 
+import java.time.Duration;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -16,6 +19,11 @@ public class CloudFormationClientProvider {
         return clients.computeIfAbsent(environment.getName(), name -> CloudFormationClient.builder()
                 .region(environment.getRegion())
                 .credentialsProvider(environment.getCredentialsProvider())
+                .httpClientBuilder(ApacheHttpClient.builder()
+                        .maxConnections(200)
+                        .connectionAcquisitionTimeout(Duration.ofSeconds(60))
+                        .connectionMaxIdleTime(Duration.ofSeconds(60))
+                        .socketTimeout(Duration.ofSeconds(60)))
                 .build());
     }
 
