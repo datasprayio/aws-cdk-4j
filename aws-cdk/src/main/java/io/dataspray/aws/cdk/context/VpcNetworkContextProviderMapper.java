@@ -63,8 +63,7 @@ public class VpcNetworkContextProviderMapper implements ContextProviderMapper<Vp
         String environment = ContextProviders.buildEnvironment(properties.getAccount(), properties.getRegion());
         try (Ec2Client ec2Client = awsClientProvider.getClient(Ec2Client.class, environment)) {
             Vpc vpc = getVpc(ec2Client, getFilters(properties));
-            VpcContext vpcContext = getVpcContext(ec2Client, vpc, properties);
-            return vpcContext;
+            return getVpcContext(ec2Client, vpc, properties);
         }
     }
 

@@ -111,9 +111,10 @@ public class VpcNetworkContextProviderMapperTest {
         return new Object[][]{
                 // Exactly one VPC matching the criteria is required, otherwise an exception is thrown
                 {
-                        Json.createObjectBuilder()
-                                .add("region", "someRegion")
-                                .add("account", "someAccount")
+                        VpcContextQuery.builder()
+                                .region("someRegion")
+                                .account("someAccount")
+                                .filter(ImmutableMap.of())
                                 .build(),
                         ClientMockData.get(),
                         null,
@@ -957,7 +958,7 @@ public class VpcNetworkContextProviderMapperTest {
     }
 
     @Test(dataProvider = "testDataProvider")
-    public void test(VpcContextQuery properties, ClientMockData data, Object expectedValue, Class<? extends Exception> exceptionType) {
+    public void test(VpcContextQuery properties, ClientMockData data, VpcContext expectedValue, Class<? extends Exception> exceptionType) {
         Ec2Client ec2Client = mock(Ec2Client.class);
         when(ec2Client.describeVpcs(any(DescribeVpcsRequest.class)))
                 .thenReturn(DescribeVpcsResponse.builder().vpcs(data.getVpcs()).build());
