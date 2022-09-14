@@ -1,9 +1,8 @@
 package io.dataspray.aws.cdk;
 
 import com.google.common.collect.Maps;
-import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
-import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 
 import java.time.Duration;
 import java.util.concurrent.ConcurrentMap;

@@ -11,8 +11,6 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import software.amazon.awscdk.cloudassembly.schema.VpcContextQuery;
-import software.amazon.awscdk.cxapi.VpcSubnet;
-import software.amazon.awscdk.cxapi.VpcSubnetGroup;
 import software.amazon.awscdk.cxapi.VpcSubnetGroupType;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.DescribeRouteTablesRequest;
@@ -646,33 +644,33 @@ public class VpcNetworkContextProviderMapperTest {
                                 .vpnGatewayId("vpn-gtw-1")
                                 .availabilityZones(ImmutableList.of())
                                 .subnetGroups(ImmutableList.of(
-                                        VpcSubnetGroup.builder()
+                                        VpcContextSubnetGroup.builder()
                                                 .name("PRIVATE")
                                                 .type(VpcSubnetGroupType.PRIVATE)
                                                 .subnets(ImmutableList.of(
-                                                        VpcSubnet.builder()
+                                                        VpcContextSubnet.builder()
                                                                 .subnetId("private-subnet-1")
                                                                 .availabilityZone("az1")
                                                                 .cidr("1.1.1.1/24")
                                                                 .routeTableId("private-route-table-1")
                                                                 .build()))
                                                 .build(),
-                                        VpcSubnetGroup.builder()
+                                        VpcContextSubnetGroup.builder()
                                                 .name("PUBLIC")
                                                 .type(VpcSubnetGroupType.PUBLIC)
                                                 .subnets(ImmutableList.of(
-                                                        VpcSubnet.builder()
+                                                        VpcContextSubnet.builder()
                                                                 .subnetId("public-subnet-1")
                                                                 .availabilityZone("az1")
                                                                 .cidr("1.1.2.1/24")
                                                                 .routeTableId("public-route-table-1")
                                                                 .build()))
                                                 .build(),
-                                        VpcSubnetGroup.builder()
-                                                .name("ISOLATED")
+                                        VpcContextSubnetGroup.builder()
+                                                .name("Isolated")
                                                 .type(VpcSubnetGroupType.ISOLATED)
                                                 .subnets(ImmutableList.of(
-                                                        VpcSubnet.builder()
+                                                        VpcContextSubnet.builder()
                                                                 .subnetId("isolated-subnet-1")
                                                                 .availabilityZone("az1")
                                                                 .cidr("1.1.3.1/24")
@@ -732,34 +730,34 @@ public class VpcNetworkContextProviderMapperTest {
                                 .vpnGatewayId("vpn-gtw-1")
                                 .availabilityZones(ImmutableList.of())
                                 .subnetGroups(ImmutableList.of(
-                                        VpcSubnetGroup.builder()
-                                                .name("internal")
+                                        VpcContextSubnetGroup.builder()
+                                                .name("Private")
                                                 .type(VpcSubnetGroupType.PRIVATE)
                                                 .subnets(ImmutableList.of(
-                                                        VpcSubnet.builder()
+                                                        VpcContextSubnet.builder()
                                                                 .subnetId("private-subnet-1")
                                                                 .availabilityZone("az1")
                                                                 .cidr("1.1.1.1/24")
                                                                 .routeTableId("main")
                                                                 .build()))
                                                 .build(),
-                                        VpcSubnetGroup.builder()
-                                                .name("public-1")
+                                        VpcContextSubnetGroup.builder()
+                                                .name("Public")
                                                 .type(VpcSubnetGroupType.PUBLIC)
                                                 .subnets(ImmutableList.of(
-                                                        VpcSubnet.builder()
+                                                        VpcContextSubnet.builder()
                                                                 .subnetId("public-subnet-1")
                                                                 .availabilityZone("az1")
                                                                 .cidr("1.1.2.1/24")
                                                                 .routeTableId("main")
                                                                 .build(),
-                                                        VpcSubnet.builder()
+                                                        VpcContextSubnet.builder()
                                                                 .subnetId("public-subnet-2")
                                                                 .availabilityZone("az2")
                                                                 .cidr("1.1.3.1/24")
                                                                 .routeTableId("main")
                                                                 .build(),
-                                                        VpcSubnet.builder()
+                                                        VpcContextSubnet.builder()
                                                                 .subnetId("public-subnet-3")
                                                                 .availabilityZone("az3")
                                                                 .cidr("1.1.4.1/24")
@@ -812,33 +810,33 @@ public class VpcNetworkContextProviderMapperTest {
                                 .vpnGatewayId("vpn-gtw-1")
                                 .availabilityZones(ImmutableList.of())
                                 .subnetGroups(ImmutableList.of(
-                                        VpcSubnetGroup.builder()
+                                        VpcContextSubnetGroup.builder()
                                                 .name("internal")
                                                 .type(VpcSubnetGroupType.PRIVATE)
                                                 .subnets(ImmutableList.of(
-                                                        VpcSubnet.builder()
+                                                        VpcContextSubnet.builder()
                                                                 .subnetId("private-subnet-1")
                                                                 .availabilityZone("az1")
                                                                 .cidr("1.1.1.1/24")
                                                                 .routeTableId("main")
                                                                 .build()))
                                                 .build(),
-                                        VpcSubnetGroup.builder()
+                                        VpcContextSubnetGroup.builder()
                                                 .name("public-1")
                                                 .type(VpcSubnetGroupType.PUBLIC)
                                                 .subnets(ImmutableList.of(
-                                                        VpcSubnet.builder()
+                                                        VpcContextSubnet.builder()
                                                                 .subnetId("public-subnet-1")
                                                                 .availabilityZone("az1")
                                                                 .cidr("1.1.2.1/24")
                                                                 .routeTableId("main")
                                                                 .build()))
                                                 .build(),
-                                        VpcSubnetGroup.builder()
+                                        VpcContextSubnetGroup.builder()
                                                 .name("public-2")
                                                 .type(VpcSubnetGroupType.PUBLIC)
                                                 .subnets(ImmutableList.of(
-                                                        VpcSubnet.builder()
+                                                        VpcContextSubnet.builder()
                                                                 .subnetId("public-subnet-2")
                                                                 .availabilityZone("az2")
                                                                 .cidr("1.1.3.1/24")
@@ -892,33 +890,33 @@ public class VpcNetworkContextProviderMapperTest {
                                 .vpnGatewayId("vpn-gtw-1")
                                 .availabilityZones(ImmutableList.of())
                                 .subnetGroups(ImmutableList.of(
-                                        VpcSubnetGroup.builder()
+                                        VpcContextSubnetGroup.builder()
                                                 .name("internal")
                                                 .type(VpcSubnetGroupType.PRIVATE)
                                                 .subnets(ImmutableList.of(
-                                                        VpcSubnet.builder()
+                                                        VpcContextSubnet.builder()
                                                                 .subnetId("private-subnet-1")
                                                                 .availabilityZone("az1")
                                                                 .cidr("1.1.1.1/24")
                                                                 .routeTableId("main")
                                                                 .build()))
                                                 .build(),
-                                        VpcSubnetGroup.builder()
+                                        VpcContextSubnetGroup.builder()
                                                 .name("public-1")
                                                 .type(VpcSubnetGroupType.PUBLIC)
                                                 .subnets(ImmutableList.of(
-                                                        VpcSubnet.builder()
+                                                        VpcContextSubnet.builder()
                                                                 .subnetId("public-subnet-1")
                                                                 .availabilityZone("az1")
                                                                 .cidr("1.1.2.1/24")
                                                                 .routeTableId("main")
                                                                 .build()))
                                                 .build(),
-                                        VpcSubnetGroup.builder()
+                                        VpcContextSubnetGroup.builder()
                                                 .name("public-2")
                                                 .type(VpcSubnetGroupType.PUBLIC)
                                                 .subnets(ImmutableList.of(
-                                                        VpcSubnet.builder()
+                                                        VpcContextSubnet.builder()
                                                                 .subnetId("public-subnet-2")
                                                                 .availabilityZone("az2")
                                                                 .cidr("1.1.3.1/24")
@@ -985,7 +983,6 @@ public class VpcNetworkContextProviderMapperTest {
             Object contextValue = contextProvider.getContextValue(properties);
             Assert.assertEquals(contextValue, expectedValue);
         }
-
 
     }
 
