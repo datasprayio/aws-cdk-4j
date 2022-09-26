@@ -41,28 +41,28 @@ public class LoggingStackEventListener implements Consumer<StackEvent> {
 
     @Override
     public void accept(StackEvent event) {
-        Ansi.Color color;
+        Optional<Ansi.Color> colorOpt;
         if (event.resourceStatus() == ResourceStatus.UNKNOWN_TO_SDK_VERSION) {
-            color = Ansi.Color.BLACK;
+            colorOpt = Optional.empty();
         } else {
             String status = event.resourceStatus().toString();
             if (status.endsWith("_IN_PROGRESS")) {
-                color = Ansi.Color.BLUE;
+                colorOpt = Optional.of(Ansi.Color.BLUE);
             } else if (status.endsWith("_FAILED")) {
-                color = Ansi.Color.RED;
+                colorOpt = Optional.of(Ansi.Color.RED);
             } else {
-                color = Ansi.Color.GREEN;
+                colorOpt = Optional.of(Ansi.Color.GREEN);
             }
         }
 
         Cell statusReason = Optional.ofNullable(event.resourceStatusReason())
-                .map(reason -> Cell.of(reason, color))
+                .map(reason -> colorOpt.isPresent() ? Cell.of(reason, colorOpt.get()) : Cell.of(reason))
                 .orElse(Cell.blank());
 
         List<Cell> row = ImmutableList.of(
                 Cell.of(ZonedDateTime.from(event.timestamp().atZone(ZoneId.systemDefault())).format(DATE_TIME_FORMATTER)),
                 Cell.of(event.logicalResourceId()),
-                Cell.of(event.resourceStatusAsString(), color),
+                colorOpt.isPresent() ? Cell.of(event.resourceStatusAsString(), colorOpt.get()) : Cell.of(event.resourceStatusAsString()),
                 statusReason
         );
 
