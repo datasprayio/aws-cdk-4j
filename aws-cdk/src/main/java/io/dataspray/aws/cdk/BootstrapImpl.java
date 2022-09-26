@@ -210,7 +210,7 @@ public class BootstrapImpl implements Bootstrap {
     private Stack awaitCompletion(CloudFormationClient client, Stack stack, boolean isInteractive) {
         Stack completedStack;
         if (logger.isInfoEnabled() && isInteractive) {
-            completedStack = Stacks.awaitCompletion(client, stack, new LoggingStackEventListener());
+            completedStack = Stacks.awaitCompletion(client, stack, new LoggingStackEventListener(Stacks.lastChange(stack)));
         } else {
             completedStack = Stacks.awaitCompletion(client, stack);
         }

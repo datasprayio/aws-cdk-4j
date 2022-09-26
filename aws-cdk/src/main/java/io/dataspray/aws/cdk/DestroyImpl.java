@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -81,10 +82,11 @@ public class DestroyImpl implements Destroy {
                 .filter(s -> s.stackStatus() != StackStatus.DELETE_COMPLETE)
                 .orElse(null);
         if (stack != null) {
+            Instant startTime = Instant.now();
             stack = Stacks.deleteStack(client, stack.stackName());
             logger.info("The stack '{}' is being deleted, waiting until the operation is completed", stack.stackName());
             if (logger.isInfoEnabled() && isInteractive) {
-                stack = Stacks.awaitCompletion(client, stack, new LoggingStackEventListener());
+                stack = Stacks.awaitCompletion(client, stack, new LoggingStackEventListener(startTime));
             } else {
                 stack = Stacks.awaitCompletion(client, stack);
             }

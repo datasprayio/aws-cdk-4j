@@ -290,7 +290,7 @@ public class StackDeployer {
     private Stack awaitCompletion(Stack stack) {
         Stack completedStack;
         if (logger.isInfoEnabled() && isInteractive) {
-            completedStack = Stacks.awaitCompletion(client, stack, new LoggingStackEventListener());
+            completedStack = Stacks.awaitCompletion(client, stack, new LoggingStackEventListener(Stacks.lastChange(stack)));
         } else {
             completedStack = Stacks.awaitCompletion(client, stack);
         }

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.cloudformation.model.ResourceStatus;
 import software.amazon.awssdk.services.cloudformation.model.StackEvent;
 
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -33,14 +34,20 @@ public class LoggingStackEventListener implements Consumer<StackEvent> {
             Column.of("Status Reason", 64)
     );
 
+    private final Instant notBefore;
     private final TableWriter tableWriter;
 
-    public LoggingStackEventListener() {
+    public LoggingStackEventListener(Instant notBefore) {
+        this.notBefore = notBefore;
         this.tableWriter = TableWriter.of(line -> logger.info(line.trim()), COLUMNS);
     }
 
     @Override
     public void accept(StackEvent event) {
+        if (event.timestamp().isBefore(notBefore)) {
+            return;
+        }
+
         Optional<Ansi.Color> colorOpt;
         if (event.resourceStatus() == ResourceStatus.UNKNOWN_TO_SDK_VERSION) {
             colorOpt = Optional.empty();

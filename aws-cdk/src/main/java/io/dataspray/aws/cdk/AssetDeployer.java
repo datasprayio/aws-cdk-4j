@@ -341,7 +341,7 @@ public class AssetDeployer {
     private Stack awaitCompletion(Stack stack, CloudFormationClient client, boolean isInteractive) {
         Stack completedStack;
         if (logger.isInfoEnabled() && isInteractive) {
-            completedStack = Stacks.awaitCompletion(client, stack, new LoggingStackEventListener());
+            completedStack = Stacks.awaitCompletion(client, stack, new LoggingStackEventListener(Stacks.lastChange(stack)));
         } else {
             completedStack = Stacks.awaitCompletion(client, stack);
         }

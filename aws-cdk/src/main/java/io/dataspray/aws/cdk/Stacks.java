@@ -20,6 +20,7 @@ import software.amazon.awssdk.services.cloudformation.model.UpdateStackResponse;
 
 import javax.annotation.Nullable;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
@@ -165,6 +166,16 @@ public class Stacks {
 
     public static boolean isRolledBack(Stack stack) {
         return stack.stackStatus() == StackStatus.ROLLBACK_COMPLETE || stack.stackStatus().toString().endsWith("_ROLLBACK_COMPLETE");
+    }
+
+    public static Instant lastChange(Stack stack) {
+        if (stack.deletionTime() != null) {
+            return stack.deletionTime();
+        }
+        if (stack.lastUpdatedTime() != null) {
+            return stack.lastUpdatedTime();
+        }
+        return stack.creationTime();
     }
 
     public static Stack awaitCompletion(CloudFormationClient client, Stack stack) {
