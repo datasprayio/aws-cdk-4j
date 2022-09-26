@@ -31,4 +31,4 @@ jobs:
             ${{ runner.os }}-maven-
       - name: 'Run mvn verify'
         timeout-minutes: 60
-        run: 'mvn --batch-mode clean verify -DskipUTs=false -DskipITs=true'
+        run: 'mvn --batch-mode clean verify -DskipUTs=false -DskipITs=true -pl -aws-cdk-integration-tests'
