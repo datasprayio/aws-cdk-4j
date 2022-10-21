@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: "maven" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     ignore:
       - dependency-name: "org.testng:testng"
       - dependency-name: "org.apache.maven:maven-core"
