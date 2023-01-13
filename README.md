@@ -1,7 +1,7 @@
 <h1 align="center">AWS CDK for Java<br/>Maven Plugin | Standalone</h1>
 <div align="center">
   <a href="https://github.com/clearflask/clearflask/actions?query=workflow%3A%22CI%22">
-    <img alt="Build Status" src="https://img.shields.io/github/workflow/status/datasprayio/aws-cdk/CodeQL?style=for-the-badge">
+    <img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/datasprayio/aws-cdk/build.yml?style=for-the-badge">
   </a>
   <a href="https://search.maven.org/artifact/io.dataspray/aws-cdk">
     <img alt="Maven Central release" src="https://img.shields.io/maven-central/v/io.dataspray/aws-cdk?style=for-the-badge">
