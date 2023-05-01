@@ -9,7 +9,7 @@
 
     <name>AWS CDK Parent</name>
     <description>A set of tools to interact with CDK application</description>
-    <url>https://github.com/datasprayio/aws-cdk</url>
+    <url>https://github.com/datasprayio/aws-cdk-4j</url>
 
     <licenses>
         <license>
@@ -31,9 +31,9 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git@github.com:datasprayio/aws-cdk.git</connection>
-        <developerConnection>scm:git:git@github.com:datasprayio/aws-cdk.git</developerConnection>
-        <url>https://github.com/datasprayio/aws-cdk</url>
+        <connection>scm:git:git@github.com:datasprayio/aws-cdk-4j.git</connection>
+        <developerConnection>scm:git:git@github.com:datasprayio/aws-cdk-4j.git</developerConnection>
+        <url>https://github.com/datasprayio/aws-cdk-4j</url>
         <tag>HEAD</tag>
     </scm>
 
