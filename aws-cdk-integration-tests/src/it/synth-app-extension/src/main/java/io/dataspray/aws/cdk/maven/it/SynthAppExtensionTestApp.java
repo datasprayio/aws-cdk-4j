@@ -1,6 +1,6 @@
 package io.dataspray.aws.cdk.maven.it;
 
-import software.amazon.awscdk.core.App;
+import software.amazon.awscdk.App;
 
 /**
  * A simple CDK application that extends {@link App} and defines all the constructs in its constructor.

@@ -1,9 +1,9 @@
 package io.dataspray.aws.cdk.maven.it;
 
-import software.amazon.awscdk.core.CfnOutput;
-import software.amazon.awscdk.core.Construct;
-import software.amazon.awscdk.core.Duration;
-import software.amazon.awscdk.core.Stack;
+import software.amazon.awscdk.CfnOutput;
+import software.amazon.awscdk.Construct;
+import software.amazon.awscdk.Duration;
+import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.services.apigateway.LambdaIntegration;
 import software.amazon.awscdk.services.apigateway.RestApi;
 import software.amazon.awscdk.services.apigateway.RestApiProps;

@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>software.amazon.awscdk</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>aws-cdk-lib</artifactId>
         </dependency>
         <dependency>
             <groupId>software.amazon.awscdk</groupId>

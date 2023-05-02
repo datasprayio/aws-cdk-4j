@@ -1,6 +1,6 @@
 package io.dataspray.aws.cdk.maven.it;
 
-import software.amazon.awscdk.core.*;
+import software.amazon.awscdk.*;
 import software.amazon.awscdk.services.s3.BlockPublicAccess;
 import software.amazon.awscdk.services.s3.Bucket;
 

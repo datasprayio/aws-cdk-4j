@@ -100,7 +100,7 @@ There are several actions you can perform using this library or Maven plugin out
 
 | Action | Plugin Goal | Library | Description |
 | --- | --- | --- | --- |
-| [Synthesize](#synthesize) | `synth` | `software.amazon.awscdk.core.` `App.synth()` | Synthesizes [CloudFormation][4] templates based on the resources defined in your CDK application. |
+| [Synthesize](#synthesize) | `synth` | `software.amazon.awscdk.` `App.synth()` | Synthesizes [CloudFormation][4] templates based on the resources defined in your CDK application. |
 | [Bootstrap](#bootstrap) | `bootstrap` | `io.dataspray.aws.cdk.` `AwsCdk.bootstrap()` | Deploys toolkit stacks required by the CDK application to an AWS. |
 | [Deploy](#deploy) | `deploy` | `io.dataspray.aws.cdk.` `AwsCdk.deploy()` | Deploys the CDK application to an AWS (based on the synthesized resources) |
 | [Destroy](#destroy) | `destroy` | `io.dataspray.aws.cdk.` `AwsCdk.destroy()` | Destroys the CDK application from AWS |
@@ -127,14 +127,14 @@ Lambda bundles, file and Docker image assets etc. The artifacts in the cloud ass
 `bootstrap` and `deploy` goals.
 
 The only mandatory parameter required by the goal is `<app>`, which is a full class name of the CDK app class defining
-the cloud infrastructure. The application class must either extend `software.amazon.awscdk.core.App` or define a
+the cloud infrastructure. The application class must either extend `software.amazon.awscdk.App` or define a
 `main` method which is supposed to create an instance of `App`, define cloud [constructs][5] and call `App#synth()`
 method in order to produce a cloud assembly with CloudFormation templates.
 
 Extending `App` class:
 
 ```java
-import software.amazon.awscdk.core.App;
+import software.amazon.awscdk.App;
 
 public class MyApp extends App {
 
@@ -148,7 +148,7 @@ public class MyApp extends App {
 Defining `main` method:
 
 ```java
-import software.amazon.awscdk.core.App;
+import software.amazon.awscdk.App;
 
 public class MyApp {
 

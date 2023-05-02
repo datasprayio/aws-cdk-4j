@@ -1,10 +1,10 @@
 package io.dataspray.aws.cdk.maven.it;
 
-import software.amazon.awscdk.core.CfnOutput;
-import software.amazon.awscdk.core.CfnParameter;
-import software.amazon.awscdk.core.Construct;
-import software.amazon.awscdk.core.RemovalPolicy;
-import software.amazon.awscdk.core.Stack;
+import software.amazon.awscdk.CfnOutput;
+import software.amazon.awscdk.CfnParameter;
+import software.amazon.awscdk.Construct;
+import software.amazon.awscdk.RemovalPolicy;
+import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.services.s3.BlockPublicAccess;
 import software.amazon.awscdk.services.s3.Bucket;
 

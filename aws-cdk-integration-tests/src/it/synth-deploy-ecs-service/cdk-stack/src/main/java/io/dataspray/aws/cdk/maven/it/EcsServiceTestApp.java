@@ -1,6 +1,6 @@
 package io.dataspray.aws.cdk.maven.it;
 
-import software.amazon.awscdk.core.App;
+import software.amazon.awscdk.App;
 
 /**
  * CDK application that defines a ECS Fargate HTTP service running behind network load balancer. The service

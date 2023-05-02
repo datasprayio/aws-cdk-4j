@@ -9,7 +9,7 @@ import java.util.Optional;
 /**
  * Synthesizes a cloud assembly from the CDK app class.
  *
- * The app class must either define a main method or extend {@code software.amazon.awscdk.core.App} class and have a
+ * The app class must either define a main method or extend {@code software.amazon.awscdk.App} class and have a
  * default constructor.
  */
 public class Synthesizer {
@@ -34,7 +34,7 @@ public class Synthesizer {
         if (mainMethod != null) {
             mainMethod.invoke((Object) args);
         } else {
-            Class<?> appType = classLoader.loadClass("software.amazon.awscdk.core.App");
+            Class<?> appType = classLoader.loadClass("software.amazon.awscdk.App");
             if (!appType.isAssignableFrom(appClass)) {
                 throw new IllegalArgumentException("The app class must either be an instance of App class or have a " +
                         "main method with appropriate signature which will synthesize the CloudFormation template");

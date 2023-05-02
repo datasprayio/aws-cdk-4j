@@ -118,8 +118,8 @@ public class SynthMojo extends AbstractCdkMojo implements ContextEnabled {
 
     /**
      * The name of the application class defining your cloud infrastructure. The application class must either extend
-     * {@link software.amazon.awscdk.core.App} or define a main method which would create an instance of {@code App},
-     * define the constructs associated with it and call {@link software.amazon.awscdk.core.App#synth()} method in order
+     * {@link software.amazon.awscdk.App} or define a main method which would create an instance of {@code App},
+     * define the constructs associated with it and call {@link software.amazon.awscdk.App#synth()} method in order
      * to produce a cloud assembly with CloudFormation templates.
      */
     @Parameter(property = "aws.cdk.app", required = true)

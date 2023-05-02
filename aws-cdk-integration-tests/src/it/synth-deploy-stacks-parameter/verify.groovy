@@ -1,6 +1,6 @@
 import io.dataspray.aws.cdk.Stacks
 import io.dataspray.aws.cdk.ToolkitStacks
-import software.amazon.awscdk.core.Stack
+import software.amazon.awscdk.Stack
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient
 import software.amazon.awssdk.services.cloudformation.model.StackStatus
 

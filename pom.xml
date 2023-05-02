@@ -51,8 +51,8 @@
         <maven.version>3.5.0</maven.version>
         <maven.tools.version>3.6.4</maven.tools.version>
         <aws.sdk.version>2.20.56</aws.sdk.version>
-        <aws.cdk.version>1.200.0</aws.cdk.version>
-        <aws.cdk.jsii.version>[1.63.2,2.0.0)</aws.cdk.jsii.version>
+        <aws.cdk.version>2.77.0</aws.cdk.version>
+        <aws.cdk.jsii.version>1.80.0</aws.cdk.jsii.version>
         <githubReleaseVersion>${project.version}</githubReleaseVersion>
         <skipTests />
         <skipITs />
@@ -121,7 +121,7 @@
             </dependency>
             <dependency>
                 <groupId>software.amazon.awscdk</groupId>
-                <artifactId>core</artifactId>
+                <artifactId>aws-cdk-lib</artifactId>
                 <version>${aws.cdk.version}</version>
             </dependency>
             <dependency>
