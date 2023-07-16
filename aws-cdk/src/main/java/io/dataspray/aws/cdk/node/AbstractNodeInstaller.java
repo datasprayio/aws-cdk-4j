@@ -30,6 +30,7 @@ public abstract class AbstractNodeInstaller implements NodeInstaller {
     @Override
     public NodeClient install(NodeVersion version) {
         String artifactName = String.join("-", "node", os, arch);
+        logger.info("Installing Node.js version {} os {} arch {}", version, os, arch);
         Path homeDirectory = localRepositoryDirectory.resolve(Paths.get("io", "dataspray", artifactName, version.toString()));
         Path stateFile = homeDirectory.resolve(".state");
         if (!isInstallationCompleted(stateFile)) {

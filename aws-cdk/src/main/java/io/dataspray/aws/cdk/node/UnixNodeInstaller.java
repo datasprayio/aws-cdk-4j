@@ -31,9 +31,35 @@ public class UnixNodeInstaller extends AbstractNodeInstaller {
 
     private final ProcessRunner processRunner;
 
+    public UnixNodeInstaller(ProcessRunner processRunner, Path localRepositoryPath, String os) {
+        this(processRunner, localRepositoryPath, os, getArch());
+    }
+
     public UnixNodeInstaller(ProcessRunner processRunner, Path localRepositoryDirectory, String os, String arch) {
         super(localRepositoryDirectory, os, arch);
         this.processRunner = processRunner;
+    }
+
+    private static String getArch() {
+        String arch = System.getProperty("os.arch");
+        if (arch.equals("arm")) {
+            String osVersion = System.getProperty("os.version");
+            if (osVersion.contains("v7")) {
+                arch = "armv7l";
+            } else {
+                throw new NodeInstallationException("The architecture is not supported: " + arch);
+            }
+        } else if (arch.equals("aarch64")) {
+            arch = "arm64";
+        } else if (!arch.equals("ppc64le") && !arch.equals("s390x")) {
+            if (arch.contains("64")) {
+                arch = "x64";
+            } else {
+                throw new NodeInstallationException("The architecture is not supported: " + arch);
+            }
+        }
+
+        return arch;
     }
 
     protected void download(NodeVersion version, String os, String arch, Path destination) {

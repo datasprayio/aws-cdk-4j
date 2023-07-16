@@ -15,7 +15,6 @@ import io.dataspray.aws.cdk.context.ContextProviderMapper;
 import io.dataspray.aws.cdk.context.HostedZoneContextProviderMapper;
 import io.dataspray.aws.cdk.context.SsmContextProviderMapper;
 import io.dataspray.aws.cdk.context.VpcNetworkContextProviderMapper;
-import io.dataspray.aws.cdk.node.LinuxNodeInstaller;
 import io.dataspray.aws.cdk.node.NodeClient;
 import io.dataspray.aws.cdk.node.NodeInstallationException;
 import io.dataspray.aws.cdk.node.NodeInstaller;
@@ -87,8 +86,8 @@ public class SynthMojo extends AbstractCdkMojo implements ContextEnabled {
     private static final Logger logger = LoggerFactory.getLogger(DeployMojo.class);
 
     private static final String CDK_CONTEXT_FILE_NAME = "cdk.context.json";
-    private static final NodeVersion MINIMUM_REQUIRED_NODE_VERSION = NodeVersion.of(14, 6, 0);
-    private static final NodeVersion INSTALLED_NODE_VERSION = NodeVersion.of(18, 0, 0);
+    private static final NodeVersion MINIMUM_REQUIRED_NODE_VERSION = NodeVersion.of(16, 0, 0);
+    private static final NodeVersion INSTALLED_NODE_VERSION = NodeVersion.of(18, 16, 1);
     private static final String OUTPUT_DIRECTORY_VARIABLE_NAME = "CDK_OUTDIR";
     private static final String DEFAULT_ACCOUNT_VARIABLE_NAME = "CDK_DEFAULT_ACCOUNT";
     private static final String DEFAULT_REGION_VARIABLE_NAME = "CDK_DEFAULT_REGION";
@@ -193,6 +192,8 @@ public class SynthMojo extends AbstractCdkMojo implements ContextEnabled {
             environment.compute(PATH_VARIABLE_NAME, (name, path) -> Stream.of(node.getPath().toString(), path)
                     .filter(Objects::nonNull)
                     .collect(Collectors.joining(File.pathSeparator)));
+        } else {
+            logger.info("Node.js is already installed with version {}", nodeVersion);
         }
 
         environment.computeIfAbsent(OUTPUT_DIRECTORY_VARIABLE_NAME, v -> outputDirectory.toString());
@@ -326,19 +327,19 @@ public class SynthMojo extends AbstractCdkMojo implements ContextEnabled {
     }
 
     private NodeInstaller getNodeInstaller() {
-        String osName = System.getProperty("os.name");
+        String osName = System.getProperty("os.name").toLowerCase();
         Path localRepositoryDirectory = this.localRepositoryDirectory.toPath();
         NodeInstaller nodeInstaller;
 
-        if (osName.startsWith("Windows")) {
+        if (osName.startsWith("Win".toLowerCase())) {
             nodeInstaller = new WindowsNodeInstaller(processRunner, localRepositoryDirectory);
-        } else if (osName.startsWith("Mac")) {
-            nodeInstaller = new UnixNodeInstaller(processRunner, localRepositoryDirectory, "darwin", "x64");
-        } else if (osName.startsWith("SunOS")) {
+        } else if (osName.startsWith("Mac".toLowerCase())) {
+            nodeInstaller = new UnixNodeInstaller(processRunner, localRepositoryDirectory, "darwin");
+        } else if (osName.startsWith("SunOS".toLowerCase())) {
             nodeInstaller = new UnixNodeInstaller(processRunner, localRepositoryDirectory, "sunos", "x64");
-        } else if (osName.startsWith("Linux") || osName.startsWith("LINUX")) {
-            nodeInstaller = new LinuxNodeInstaller(processRunner, localRepositoryDirectory);
-        } else if (osName.startsWith("AIX")) {
+        } else if (osName.startsWith("Linux".toLowerCase())) {
+            nodeInstaller = new UnixNodeInstaller(processRunner, localRepositoryDirectory, "linux");
+        } else if (osName.startsWith("AIX".toLowerCase())) {
             nodeInstaller = new UnixNodeInstaller(processRunner, localRepositoryDirectory, "aix", "ppc64");
         } else {
             throw new NodeInstallationException("The platform is not supported: " + osName);
