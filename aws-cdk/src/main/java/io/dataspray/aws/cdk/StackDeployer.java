@@ -16,10 +16,7 @@ import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class StackDeployer {
@@ -37,6 +34,7 @@ public class StackDeployer {
     private final ToolkitConfiguration toolkitConfiguration;
     private final FileAssetPublisher fileAssetPublisher;
     private final DockerImageAssetPublisher dockerImagePublisher;
+    private final Set<String> notificationArns;
     private final boolean isInteractive;
 
     public StackDeployer(Path cloudAssemblyDirectory,
@@ -44,12 +42,14 @@ public class StackDeployer {
                          ToolkitConfiguration toolkitConfiguration,
                          FileAssetPublisher fileAssetPublisher,
                          DockerImageAssetPublisher dockerImagePublisher,
+                         Set<String> notificationArns,
                          boolean isInteractive) {
         this.cloudAssemblyDirectory = cloudAssemblyDirectory;
         this.environment = environment;
         this.toolkitConfiguration = toolkitConfiguration;
         this.fileAssetPublisher = fileAssetPublisher;
         this.dockerImagePublisher = dockerImagePublisher;
+        this.notificationArns = notificationArns;
         this.isInteractive = isInteractive;
         this.client = CloudFormationClientProvider.get(environment);
     }
@@ -108,7 +108,7 @@ public class StackDeployer {
         Stack stack;
         if (deployedStack != null && deployedStack.stackStatus() != StackStatus.DELETE_COMPLETE) {
             try {
-                stack = Stacks.updateStack(client, stackName, templateRef, effectiveParameters, tags);
+                stack = Stacks.updateStack(client, stackName, templateRef, effectiveParameters, tags, notificationArns);
             } catch (CloudFormationException e) {
                 AwsErrorDetails errorDetails = e.awsErrorDetails();
                 if (!errorDetails.errorCode().equals("ValidationError") ||
@@ -120,7 +120,7 @@ public class StackDeployer {
                 updated = false;
             }
         } else {
-            stack = Stacks.createStack(client, stackName, templateRef, effectiveParameters, tags);
+            stack = Stacks.createStack(client, stackName, templateRef, effectiveParameters, tags, notificationArns);
         }
 
         if (updated) {

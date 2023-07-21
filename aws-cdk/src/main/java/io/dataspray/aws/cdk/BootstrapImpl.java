@@ -171,7 +171,7 @@ public class BootstrapImpl implements Bootstrap {
                 logger.info("The toolkit stack doesn't exist. Deploying a new one, environment={}, stackName={}",
                         environment, toolkitStackName);
                 Map<String, ParameterValue> stackParameters = Maps.transformValues(bootstrapParameters, ParameterValue::value);
-                toolkitStack = Stacks.createStack(client, toolkitStackName, toolkitTemplate, stackParameters, bootstrapTags);
+                toolkitStack = Stacks.createStack(client, toolkitStackName, toolkitTemplate, stackParameters, bootstrapTags, ImmutableSet.of());
             }
             if (!Stacks.isCompleted(toolkitStack)) {
                 logger.info("Waiting until the toolkit stack reaches stable state, environment={}, stackName={}",

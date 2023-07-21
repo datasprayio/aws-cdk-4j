@@ -25,33 +25,33 @@ public class DeployImpl implements Deploy {
     private static final Logger logger = LoggerFactory.getLogger(DeployImpl.class);
 
     @Override
-    public void execute(CloudAssembly cloudAssembly, String toolkitStackName, Set<String> stacks, Map<String, String> parameters, Map<String, String> tags, Optional<String> profileOpt, boolean isInteractive) {
-        execute(CloudDefinition.create(cloudAssembly), toolkitStackName, stacks, parameters, tags, profileOpt, isInteractive);
+    public void execute(CloudAssembly cloudAssembly, String toolkitStackName, Set<String> stacks, Map<String, String> parameters, Map<String, String> tags, Set<String> notificationArns, Optional<String> profileOpt, boolean isInteractive) {
+        execute(CloudDefinition.create(cloudAssembly), toolkitStackName, stacks, parameters, tags, notificationArns, profileOpt, isInteractive);
     }
 
     @Override
-    public void execute(Path cloudAssemblyDirectory, String toolkitStackName, Set<String> stacks, Map<String, String> parameters, Map<String, String> tags, Optional<String> profileOpt, boolean isInteractive) {
-        execute(CloudDefinition.create(cloudAssemblyDirectory), toolkitStackName, stacks, parameters, tags, profileOpt, isInteractive);
+    public void execute(Path cloudAssemblyDirectory, String toolkitStackName, Set<String> stacks, Map<String, String> parameters, Map<String, String> tags, Set<String> notificationArns, Optional<String> profileOpt, boolean isInteractive) {
+        execute(CloudDefinition.create(cloudAssemblyDirectory), toolkitStackName, stacks, parameters, tags, notificationArns, profileOpt, isInteractive);
     }
 
     @Override
     public void execute(CloudAssembly cloudAssembly) {
         execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME,
                 ImmutableSet.copyOf(Lists.transform(cloudAssembly.getStacks(), CloudFormationStackArtifact::getStackName)),
-                null, null, Optional.empty(), true);
+                null, null, ImmutableSet.of(), Optional.empty(), true);
     }
 
     @Override
     public void execute(CloudAssembly cloudAssembly, String... stacks) {
-        execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME, ImmutableSet.copyOf(stacks), null, null, Optional.empty(), true);
+        execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME, ImmutableSet.copyOf(stacks), null, null, ImmutableSet.of(), Optional.empty(), true);
     }
 
     @Override
     public void execute(CloudAssembly cloudAssembly, Set<String> stacks, String profile) {
-        execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME, stacks, null, null, Optional.of(profile), true);
+        execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME, stacks, null, null, ImmutableSet.of(), Optional.of(profile), true);
     }
 
-    private void execute(CloudDefinition cloudDefinition, String toolkitStackName, Set<String> stacks, Map<String, String> parameters, Map<String, String> tags, Optional<String> profileOpt, boolean isInteractive) {
+    private void execute(CloudDefinition cloudDefinition, String toolkitStackName, Set<String> stacks, Map<String, String> parameters, Map<String, String> tags, Set<String> notificationArns, Optional<String> profileOpt, boolean isInteractive) {
         EnvironmentResolver environmentResolver = EnvironmentResolver.create(profileOpt.orElse(null));
         if (stacks != null && !stacks.isEmpty() && logger.isWarnEnabled()) {
             Set<String> undefinedStacks = new HashSet<>(stacks);
@@ -79,7 +79,7 @@ public class DeployImpl implements Deploy {
                     ResolvedEnvironment resolvedEnvironment = environmentResolver.resolve(environment);
                     ToolkitConfiguration toolkitConfiguration = new ToolkitConfiguration(toolkitStackName);
                     return new StackDeployer(cloudDefinition.getCloudAssemblyDirectory(), resolvedEnvironment,
-                            toolkitConfiguration, filePublisher, dockerImagePublisher, isInteractive);
+                            toolkitConfiguration, filePublisher, dockerImagePublisher, notificationArns, isInteractive);
                 });
 
                 Map<String, ParameterValue> assetParameters = assetDeployer.deploy(

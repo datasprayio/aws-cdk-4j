@@ -230,16 +230,17 @@ are attached to the `deploy` Maven phase).
 
 ### Configuration
 
-| Parameter | Type | Since | Description |
-| --- | --- | --- | --- |
-| `String profile` <br/> `<profile>` <br/> `-Daws.cdk.profile` | `String` | `0.0.1` | A profile that will be used to find credentials and region. |
-| `CloudAssembly cloudAssembly` <br/> `Path cloudAssemblyDirectory` <br/> `<cloudAssemblyDirectory>` <br/> `-Daws.cdk.cloud.assembly.directory` | `String` | `0.0.1` | A cloud assembly directory with the deployment artifacts (`target/cdk.out` by default). Using the library, you can also pass the `CloudAssembly` directly. |
-| `String toolkitStackName` <br/> `<toolkitStackName>` <br/> `-Daws.cdk.toolkit.stack.name` | `String` | `0.0.1` | The name of the CDK toolkit stack to use (`CDKToolkit` is used by default). |
-| `Set<String> stacks` <br/> `<stacks>` <br/> `-Daws.cdk.stacks` | `List<String>` | `0.0.4` | Stacks to deploy. By default, all the stacks defined in your application will be deployed. |
-| `Map<String, String> parameters` <br/> `<parameters>` | `Map<String, String>` | `0.0.4` | Input parameters for the stacks. For the new stacks, all the parameters without a default value must be specified. In the case of an update, existing values will be reused. |
-| `Map<String, String> tags` <br/> `<tags>` | `Map<String, String>` | `1.1.0` | Tags to be applied for all stacks. |
-| `<skip>` <br/> `-Daws.cdk.skip` | `boolean` | `0.0.7` | Enables/disables the execution of the goal. |
-| `boolean isInteractive` | `boolean` | `1.1.0` | Whether to print out detailed information. |
+| Parameter                                                                                                                                     | Type                  | Since   | Description                                                                                                                                                                  |
+|-----------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String profile` <br/> `<profile>` <br/> `-Daws.cdk.profile`                                                                                  | `String`              | `0.0.1` | A profile that will be used to find credentials and region.                                                                                                                  |
+| `CloudAssembly cloudAssembly` <br/> `Path cloudAssemblyDirectory` <br/> `<cloudAssemblyDirectory>` <br/> `-Daws.cdk.cloud.assembly.directory` | `String`              | `0.0.1` | A cloud assembly directory with the deployment artifacts (`target/cdk.out` by default). Using the library, you can also pass the `CloudAssembly` directly.                   |
+| `String toolkitStackName` <br/> `<toolkitStackName>` <br/> `-Daws.cdk.toolkit.stack.name`                                                     | `String`              | `0.0.1` | The name of the CDK toolkit stack to use (`CDKToolkit` is used by default).                                                                                                  |
+| `Set<String> stacks` <br/> `<stacks>` <br/> `-Daws.cdk.stacks`                                                                                | `List<String>`        | `0.0.4` | Stacks to deploy. By default, all the stacks defined in your application will be deployed.                                                                                   |
+| `Map<String, String> parameters` <br/> `<parameters>`                                                                                         | `Map<String, String>` | `0.0.4` | Input parameters for the stacks. For the new stacks, all the parameters without a default value must be specified. In the case of an update, existing values will be reused. |
+| `Map<String, String> tags` <br/> `<tags>`                                                                                                     | `Map<String, String>` | `1.1.0` | Tags to be applied for all stacks.                                                                                                                                           |
+| `Set<String> notificationArns` <br/> `<notificationArns>`                                                                                     | `Set<String>`         | `2.1.0` | SNS ARNs to publish stack related events.                                                                                                                                    |
+| `<skip>` <br/> `-Daws.cdk.skip`                                                                                                               | `boolean`             | `0.0.7` | Enables/disables the execution of the goal.                                                                                                                                  |
+| `boolean isInteractive`                                                                                                                       | `boolean`             | `1.1.0` | Whether to print out detailed information.                                                                                                                                   |
 
 ## Destroy
 

@@ -40,8 +40,14 @@ public class DeployMojo extends AbstractCdkMojo {
     @Parameter
     private Map<String, String> tags;
 
+    /**
+     * Optional Amazon Simple Notification Service (Amazon SNS) topic ARNs to publish stack related events.
+     */
+    @Parameter(property = "aws.cdk.notificationArns")
+    private Set<String> notificationArns;
+
     @Override
     public void execute(Path cloudAssemblyDirectory, Optional<String> profileOpt, boolean isInteractive) {
-        AwsCdk.deploy().execute(cloudAssemblyDirectory, toolkitStackName, stacks, parameters, tags, profileOpt, isInteractive);
+        AwsCdk.deploy().execute(cloudAssemblyDirectory, toolkitStackName, stacks, parameters, tags, notificationArns, profileOpt, isInteractive);
     }
 }

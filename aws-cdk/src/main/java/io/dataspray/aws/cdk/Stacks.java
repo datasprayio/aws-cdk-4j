@@ -1,5 +1,6 @@
 package io.dataspray.aws.cdk;
 
+import com.google.common.collect.ImmutableSet;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.services.cloudformation.model.Capability;
 import software.amazon.awssdk.services.cloudformation.model.CloudFormationException;
@@ -60,25 +61,29 @@ public class Stacks {
     }
 
     public static Stack createStack(CloudFormationClient client, String stackName, TemplateRef template) {
-        return createStack(client, stackName, template, Collections.emptyMap(), Collections.emptyMap());
+        return createStack(client, stackName, template, Collections.emptyMap(), Collections.emptyMap(), ImmutableSet.of());
     }
 
     public static Stack createStack(CloudFormationClient client,
                                     String stackName,
                                     TemplateRef template,
                                     Map<String, ParameterValue> parameters,
-                                    Map<String, String> tags) {
+                                    Map<String, String> tags,
+                                    Set<String> notificationArns) {
         Objects.requireNonNull(client, "CloudFormation client can't be null");
         Objects.requireNonNull(stackName, "stack name can't be null");
         Objects.requireNonNull(template, "template reference can't be null");
-        CreateStackRequest request = CreateStackRequest.builder()
+        CreateStackRequest.Builder requestBuilder = CreateStackRequest.builder()
                 .stackName(stackName)
                 .templateBody(template.getBody())
                 .templateURL(template.getUrl())
                 .tags(buildTags(tags))
                 .parameters(parameters != null ? buildParameters(parameters) : Collections.emptyList())
-                .capabilities(CAPABILITIES)
-                .build();
+                .capabilities(CAPABILITIES);
+        if(notificationArns != null && !notificationArns.isEmpty()) {
+            requestBuilder.notificationARNs(notificationArns);
+        }
+        CreateStackRequest request = requestBuilder.build();
 
         CreateStackResponse response = client.createStack(request);
         return getStack(client, response.stackId());
@@ -88,25 +93,29 @@ public class Stacks {
                                     String stackName,
                                     TemplateRef template,
                                     Map<String, ParameterValue> parameters) {
-        return updateStack(client, stackName, template, parameters, Collections.emptyMap());
+        return updateStack(client, stackName, template, parameters, Collections.emptyMap(), ImmutableSet.of());
     }
 
     public static Stack updateStack(CloudFormationClient client,
                                     String stackName,
                                     TemplateRef template,
                                     Map<String, ParameterValue> parameters,
-                                    Map<String, String> tags) {
+                                    Map<String, String> tags,
+                                    Set<String> notificationArns) {
         Objects.requireNonNull(client, "CloudFormation client can't be null");
         Objects.requireNonNull(stackName, "stack name can't be null");
         Objects.requireNonNull(template, "template reference can't be null");
-        UpdateStackRequest request = UpdateStackRequest.builder()
+        UpdateStackRequest.Builder requestBuilder = UpdateStackRequest.builder()
                 .stackName(stackName)
                 .templateBody(template.getBody())
                 .templateURL(template.getUrl())
                 .tags(buildTags(tags))
                 .parameters(parameters != null ? buildParameters(parameters) : Collections.emptyList())
-                .capabilities(CAPABILITIES)
-                .build();
+                .capabilities(CAPABILITIES);
+        if(notificationArns != null && !notificationArns.isEmpty()) {
+            requestBuilder.notificationARNs(notificationArns);
+        }
+        UpdateStackRequest request = requestBuilder.build();
 
         UpdateStackResponse response = client.updateStack(request);
         return getStack(client, response.stackId());

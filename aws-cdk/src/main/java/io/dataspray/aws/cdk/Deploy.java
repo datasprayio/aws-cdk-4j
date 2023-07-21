@@ -21,6 +21,7 @@ public interface Deploy {
      * must be
      * specified. In the case of an update, existing values will be reused.
      * @param tags Tags that will be added to the stacks.
+     * @param notificationArns SNS ARNs to publish stack related events.
      * @param profileOpt Optional AWS account profile name
      * @param isInteractive Whether session is interactive and logs should be printed
      */
@@ -30,6 +31,7 @@ public interface Deploy {
             Set<String> stacks,
             Map<String, String> parameters,
             Map<String, String> tags,
+            Set<String> notificationArns,
             Optional<String> profileOpt,
             boolean isInteractive);
 
@@ -71,6 +73,7 @@ public interface Deploy {
      * @param parameters Input parameters for the stacks. For the new stacks, all the parameters without a default value
      * must be specified. In the case of an update, existing values will be reused.
      * @param tags Tags that will be added to the stacks.
+     * @param notificationArns SNS ARNs to publish stack related events.
      * @param profileOpt Optional AWS account profile name
      * @param isInteractive Whether session is interactive and logs should be printed
      */
@@ -80,6 +83,7 @@ public interface Deploy {
             Set<String> stacks,
             Map<String, String> parameters,
             Map<String, String> tags,
+            Set<String> notificationArns,
             Optional<String> profileOpt,
             boolean isInteractive);
 }
