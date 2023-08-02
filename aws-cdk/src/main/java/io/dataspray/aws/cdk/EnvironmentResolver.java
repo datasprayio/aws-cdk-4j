@@ -1,5 +1,6 @@
 package io.dataspray.aws.cdk;
 
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
@@ -145,15 +146,13 @@ public class EnvironmentResolver {
     }
 
     private static Optional<Region> fetchDefaultRegion(@Nullable String profile) {
-        AwsRegionProvider regionProvider;
-        if (profile != null) {
-            regionProvider = new AwsRegionProviderChain(
-                    new AwsProfileRegionProvider(null, profile),
-                    new DefaultAwsRegionProviderChain()
-            );
-        } else {
-            regionProvider = new DefaultAwsRegionProviderChain();
+        List<AwsRegionProvider> providers = new ArrayList<>();
+        if(!Strings.isNullOrEmpty(profile)) {
+            providers.add(new AwsProfileRegionProvider(null, profile));
         }
+        providers.add(new AwsProfileRegionProvider());
+        providers.add(new DefaultAwsRegionProviderChain());
+        AwsRegionProvider regionProvider = new AwsRegionProviderChain(providers.toArray(new AwsRegionProvider[0]));
 
         try {
             return Optional.of(regionProvider.getRegion());
@@ -163,17 +162,13 @@ public class EnvironmentResolver {
     }
 
     private static Optional<AwsCredentials> fetchDefaultCredentials(@Nullable String profile) {
-        AwsCredentialsProvider credentialsProvider;
-        if (profile != null) {
-            ProfileCredentialsProvider profileCredentialsProvider = ProfileCredentialsProvider.builder()
-                    .profileName(profile)
-                    .build();
-            credentialsProvider = AwsCredentialsProviderChain.builder()
-                    .credentialsProviders(profileCredentialsProvider, DefaultCredentialsProvider.create())
-                    .build();
-        } else {
-            credentialsProvider = DefaultCredentialsProvider.create();
+        AwsCredentialsProviderChain.Builder chainBuilder = AwsCredentialsProviderChain.builder();
+        if(!Strings.isNullOrEmpty(profile)) {
+            chainBuilder.addCredentialsProvider(ProfileCredentialsProvider.create(Strings.emptyToNull(profile)));
         }
+        chainBuilder.addCredentialsProvider(DefaultCredentialsProvider.create());
+        chainBuilder.addCredentialsProvider(ProfileCredentialsProvider.create());
+        AwsCredentialsProviderChain credentialsProvider = chainBuilder.build();
 
         try {
             return Optional.of(credentialsProvider.resolveCredentials());
