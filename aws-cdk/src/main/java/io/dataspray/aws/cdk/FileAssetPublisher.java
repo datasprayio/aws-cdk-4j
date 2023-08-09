@@ -1,31 +1,25 @@
 package io.dataspray.aws.cdk;
 
-import org.jetbrains.annotations.NotNull;
+import com.google.common.net.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.BlockingOutputStreamAsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
-import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
-import software.amazon.awssdk.services.s3.model.CompletedPart;
-import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
-import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
-import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.model.CompletedUpload;
+import software.amazon.awssdk.transfer.s3.model.UploadRequest;
+import software.amazon.awssdk.utils.CancellableOutputStream;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -35,13 +29,15 @@ import java.util.zip.ZipOutputStream;
 public class FileAssetPublisher {
 
     private static final Logger logger = LoggerFactory.getLogger(FileAssetPublisher.class);
+    private static final int MINIMUM_PART_SIZE = 5 * 1024 * 1024;
 
     private S3AsyncClient s3Client;
+    private S3TransferManager s3TransferManager;
 
     /**
      * Uploads a file or a directory (zipping it before uploading) to S3 bucket.
      *
-     * @param file the file or directory to be uploaded
+     * @param file       the file or directory to be uploaded
      * @param objectName the name of the object in the bucket
      * @param bucketName the name of the bucket
      * @throws IOException if I/O error occurs while uploading a file or directory
@@ -58,7 +54,7 @@ public class FileAssetPublisher {
     /**
      * Uploads a string as a file (zipping it before uploading) to S3 bucket.
      *
-     * @param data the content of the file
+     * @param data       the content of the file
      * @param objectName the name of the object in the bucket
      * @param bucketName the name of the bucket
      * @throws IOException if I/O error occurs while uploading a file or directory
@@ -72,8 +68,10 @@ public class FileAssetPublisher {
      * Zips the directory and uploads it to S3 bucket.
      */
     private void publishDirectory(Path directory, String objectName, String bucketName, ResolvedEnvironment environment) throws IOException {
+        BlockingOutputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingOutputStream(null);
+        CompletableFuture<CompletedUpload> uploadFuture = upload(environment, body, bucketName, objectName, MediaType.ZIP.toString());
         try (
-                OutputStream outputStream = new S3ObjectOutputStream(getS3Client(environment), bucketName, objectName, "application/zip");
+                CancellableOutputStream outputStream = body.outputStream();
                 ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)
         ) {
             Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
@@ -87,181 +85,65 @@ public class FileAssetPublisher {
                 }
             });
         }
+        uploadFuture.join();
     }
 
     /**
      * Uploads the bytes to S3 bucket.
      */
     private void publishFile(byte[] data, String objectName, String bucketName, ResolvedEnvironment environment) throws IOException {
-        try (OutputStream outputStream = new S3ObjectOutputStream(getS3Client(environment), bucketName, objectName)) {
-            outputStream.write(data);
-        }
+        upload(environment, AsyncRequestBody.fromBytes(data), bucketName, objectName).join();
     }
 
     /**
      * Uploads the file to S3 bucket.
      */
     private void publishFile(Path file, String objectName, String bucketName, ResolvedEnvironment environment) throws IOException {
-        try (OutputStream outputStream = new S3ObjectOutputStream(getS3Client(environment), bucketName, objectName)) {
-            Files.copy(file, outputStream);
-        }
+        upload(environment, AsyncRequestBody.fromFile(file), bucketName, objectName).join();
     }
 
     private S3AsyncClient getS3Client(ResolvedEnvironment environment) {
         if (this.s3Client == null) {
-            this.s3Client = S3AsyncClient.builder()
+            this.s3Client = S3AsyncClient.crtBuilder()
                     .region(environment.getRegion())
                     .credentialsProvider(environment.getCredentialsProvider())
+                    .minimumPartSizeInBytes((long) MINIMUM_PART_SIZE)
                     .build();
         }
 
         return s3Client;
     }
 
-    private static class S3ObjectOutputStream extends OutputStream {
-
-        private static final int MINIMUM_PART_SIZE = 5 * 1024 * 1024;
-
-        private S3AsyncClient s3Client;
-        private CreateMultipartUploadResponse createUploadResponse;
-        private List<CompletableFuture<CompletedPart>> parts;
-        private ByteBuffer buffer;
-
-        S3ObjectOutputStream(S3AsyncClient s3Client, String bucketName, String objectKey) {
-            this(s3Client, bucketName, objectKey, null);
-        }
-
-        S3ObjectOutputStream(S3AsyncClient s3Client, String bucketName, String objectKey, @Nullable String contentType) {
-            this(s3Client, bucketName, objectKey, contentType, MINIMUM_PART_SIZE);
-        }
-
-        S3ObjectOutputStream(S3AsyncClient s3Client, String bucketName, String objectKey, String contentType, int partSize) {
-            if (partSize <= 0) {
-                throw new IllegalArgumentException("The minimum part size is 5 MB (" + MINIMUM_PART_SIZE + " bytes)");
-            }
-            this.s3Client = s3Client;
-            this.buffer = ByteBuffer.allocate(partSize);
-            this.parts = new ArrayList<>();
-            CreateMultipartUploadRequest uploadRequest = buildUploadRequest(bucketName, objectKey, contentType);
-            this.createUploadResponse = s3Client.createMultipartUpload(uploadRequest).join();
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            if (isClosed()) {
-                throw new IOException("The stream is closed");
-            }
-
-            if (!buffer.hasRemaining()) {
-                flush();
-            }
-
-            buffer.put((byte) b);
-        }
-
-        @Override
-        public void write(@NotNull byte[] bytes, int offset, int length) throws IOException {
-            if (isClosed()) {
-                throw new IOException("The stream is closed");
-            }
-            int remaining = buffer.remaining();
-            buffer.put(bytes, offset, Math.min(remaining, length));
-            if (remaining < length) {
-                flush();
-                write(bytes, offset + remaining, length - remaining);
-            }
-        }
-
-        @Override
-        public void flush() {
-            if (!isClosed()) {
-                buffer.flip();
-                if (buffer.remaining() > 0) {
-                    CompletableFuture<CompletedPart> part = CompletableFuture.completedFuture(parts.size() + 1)
-                            .thenApply(this::buildUploadPartRequest)
-                            .thenCompose(uploadPartRequest -> {
-                                AsyncRequestBody requestBody = AsyncRequestBody.fromByteBuffer(buffer);
-                                return s3Client.uploadPart(uploadPartRequest, requestBody)
-                                        .thenApply(r -> completedPart(r.eTag(), uploadPartRequest.partNumber()));
-                            });
-                    parts.add(part);
-                }
-                buffer.clear();
-            }
-        }
-
-        @Override
-        public void close() {
-            if (!isClosed()) {
-                flush();
-                join(this.parts)
-                        .thenCompose(completedParts -> {
-                            CompleteMultipartUploadRequest completeUploadRequest = buildCompleteUploadRequest(completedParts);
-                            return s3Client.completeMultipartUpload(completeUploadRequest);
-                        })
-                        .join();
-
-                s3Client = null;
-                this.createUploadResponse = null;
-                buffer = null;
-                this.parts = null;
-            }
-
-        }
-
-        private <T> CompletableFuture<List<T>> join(List<CompletableFuture<T>> futures) {
-            return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                    .thenApply(r -> futures.stream()
-                            .map(CompletableFuture::join)
-                            .collect(Collectors.toList()));
-        }
-
-        private boolean isClosed() {
-            return buffer == null;
-        }
-
-        private CreateMultipartUploadRequest buildUploadRequest(String bucketName,
-                                                                String objectKey,
-                                                                @Nullable String contentType) {
-
-            CreateMultipartUploadRequest.Builder requestBuilder = CreateMultipartUploadRequest.builder()
-                    .bucket(bucketName)
-                    .key(objectKey);
-            if (contentType != null) {
-                requestBuilder = requestBuilder.contentType(contentType);
-            }
-
-            return requestBuilder.build();
-        }
-
-        private UploadPartRequest buildUploadPartRequest(int partNumber) {
-            return UploadPartRequest.builder()
-                    .bucket(createUploadResponse.bucket())
-                    .key(createUploadResponse.key())
-                    .uploadId(createUploadResponse.uploadId())
-                    .partNumber(partNumber)
+    private S3TransferManager getS3TransferManager(ResolvedEnvironment environment) {
+        if (this.s3TransferManager == null) {
+            this.s3TransferManager = S3TransferManager.builder()
+                    .s3Client(getS3Client(environment))
                     .build();
         }
 
-        private CompletedPart completedPart(String eTag, int partNumber) {
-            return CompletedPart.builder()
-                    .eTag(eTag)
-                    .partNumber(partNumber)
-                    .build();
+        return s3TransferManager;
+    }
+
+    private CompletableFuture<CompletedUpload> upload(ResolvedEnvironment environment, AsyncRequestBody body, String bucketName, String objectKey) {
+        return upload(environment, body, bucketName, objectKey, null);
+    }
+
+    private CompletableFuture<CompletedUpload> upload(ResolvedEnvironment environment, AsyncRequestBody body, String bucketName, String objectKey, @Nullable String contentType) {
+        return upload(environment, body, bucketName, objectKey, contentType, MINIMUM_PART_SIZE);
+    }
+
+    private CompletableFuture<CompletedUpload> upload(ResolvedEnvironment environment, AsyncRequestBody body, String bucketName, String objectKey, @Nullable String contentType, int partSize) {
+        if (partSize <= 0) {
+            throw new IllegalArgumentException("The minimum part size is 5 MB (" + MINIMUM_PART_SIZE + " bytes)");
         }
-
-        private CompleteMultipartUploadRequest buildCompleteUploadRequest(Collection<CompletedPart> parts) {
-            CompletedMultipartUpload completedMultipartUpload = CompletedMultipartUpload.builder()
-                    .parts(parts)
-                    .build();
-
-            return CompleteMultipartUploadRequest.builder()
-                    .bucket(createUploadResponse.bucket())
-                    .key(createUploadResponse.key())
-                    .uploadId(createUploadResponse.uploadId())
-                    .multipartUpload(completedMultipartUpload)
-                    .build();
-        }
-
+        return getS3TransferManager(environment).upload(UploadRequest.builder()
+                        .putObjectRequest(PutObjectRequest.builder()
+                                .bucket(bucketName)
+                                .key(objectKey)
+                                .contentType(contentType)
+                                .build())
+                        .requestBody(body)
+                        .build())
+                .completionFuture();
     }
 }

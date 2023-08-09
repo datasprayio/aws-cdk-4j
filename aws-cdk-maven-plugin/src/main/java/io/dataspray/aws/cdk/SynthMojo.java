@@ -7,20 +7,8 @@ import com.google.common.collect.Streams;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import io.dataspray.aws.cdk.context.AmiContextProviderMapper;
-import io.dataspray.aws.cdk.context.AvailabilityZonesContextProviderMapper;
-import io.dataspray.aws.cdk.context.AwsClientProvider;
-import io.dataspray.aws.cdk.context.AwsClientProviderBuilder;
-import io.dataspray.aws.cdk.context.ContextProviderMapper;
-import io.dataspray.aws.cdk.context.HostedZoneContextProviderMapper;
-import io.dataspray.aws.cdk.context.SsmContextProviderMapper;
-import io.dataspray.aws.cdk.context.VpcNetworkContextProviderMapper;
-import io.dataspray.aws.cdk.node.NodeClient;
-import io.dataspray.aws.cdk.node.NodeInstallationException;
-import io.dataspray.aws.cdk.node.NodeInstaller;
-import io.dataspray.aws.cdk.node.NodeVersion;
-import io.dataspray.aws.cdk.node.UnixNodeInstaller;
-import io.dataspray.aws.cdk.node.WindowsNodeInstaller;
+import io.dataspray.aws.cdk.context.*;
+import io.dataspray.aws.cdk.node.*;
 import io.dataspray.aws.cdk.process.DefaultProcessRunner;
 import io.dataspray.aws.cdk.process.ProcessContext;
 import io.dataspray.aws.cdk.process.ProcessExecutionException;
@@ -32,12 +20,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.FileSet;
 import org.apache.maven.plugin.ContextEnabled;
-import org.apache.maven.plugins.annotations.Component;
-import org.apache.maven.plugins.annotations.InstantiationStrategy;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.plugins.annotations.*;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.toolchain.ToolchainManager;
 import org.slf4j.Logger;
@@ -63,12 +46,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -182,7 +160,7 @@ public class SynthMojo extends AbstractCdkMojo implements ContextEnabled {
         NodeVersion nodeVersion = getInstalledNodeVersion().orElse(null);
         if (nodeVersion == null || nodeVersion.compareTo(MINIMUM_REQUIRED_NODE_VERSION) < 0) {
             if (nodeVersion == null) {
-                logger.info("Node.js is not installed. Using the Node.js from the local Maven repository");
+                logger.info("Node.js is not installed. Using Node.js from local Maven repository");
             } else {
                 logger.info("The minimum required version of Node.js is {}, however {} is installed. Using the Node.js " +
                         "from the local Maven repository", MINIMUM_REQUIRED_NODE_VERSION, nodeVersion);
@@ -193,7 +171,7 @@ public class SynthMojo extends AbstractCdkMojo implements ContextEnabled {
                     .filter(Objects::nonNull)
                     .collect(Collectors.joining(File.pathSeparator)));
         } else {
-            logger.info("Node.js is already installed with version {}", nodeVersion);
+            logger.info("Using Node.js from path with version {}", nodeVersion);
         }
 
         environment.computeIfAbsent(OUTPUT_DIRECTORY_VARIABLE_NAME, v -> outputDirectory.toString());
