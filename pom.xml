@@ -51,7 +51,7 @@
         <maven.version>3.5.0</maven.version>
         <maven.tools.version>3.6.4</maven.tools.version>
         <aws.crt.version>0.24.1</aws.crt.version>
-        <aws.sdk.version>2.20.115</aws.sdk.version>
+        <aws.sdk.version>2.21.12</aws.sdk.version>
         <aws.cdk.version>2.89.0</aws.cdk.version>
         <aws.cdk.jsii.version>1.85.0</aws.cdk.jsii.version>
         <githubReleaseVersion>${project.version}</githubReleaseVersion>
