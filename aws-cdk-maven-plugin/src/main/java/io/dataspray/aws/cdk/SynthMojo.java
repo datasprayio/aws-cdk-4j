@@ -64,7 +64,7 @@ public class SynthMojo extends AbstractCdkMojo implements ContextEnabled {
     private static final Logger logger = LoggerFactory.getLogger(DeployMojo.class);
 
     private static final String CDK_CONTEXT_FILE_NAME = "cdk.context.json";
-    private static final NodeVersion MINIMUM_REQUIRED_NODE_VERSION = NodeVersion.of(16, 0, 0);
+    private static final NodeVersion MINIMUM_REQUIRED_NODE_VERSION = NodeVersion.of(18, 0, 0);
     private static final NodeVersion INSTALLED_NODE_VERSION = NodeVersion.of(18, 16, 1);
     private static final String OUTPUT_DIRECTORY_VARIABLE_NAME = "CDK_OUTDIR";
     private static final String DEFAULT_ACCOUNT_VARIABLE_NAME = "CDK_DEFAULT_ACCOUNT";
