@@ -9,21 +9,14 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import software.amazon.awscdk.cloudassembly.schema.HostedZoneContextQuery;
 import software.amazon.awssdk.services.route53.Route53Client;
-import software.amazon.awssdk.services.route53.model.GetHostedZoneRequest;
-import software.amazon.awssdk.services.route53.model.GetHostedZoneResponse;
-import software.amazon.awssdk.services.route53.model.HostedZone;
-import software.amazon.awssdk.services.route53.model.HostedZoneConfig;
-import software.amazon.awssdk.services.route53.model.ListHostedZonesByNameRequest;
-import software.amazon.awssdk.services.route53.model.ListHostedZonesByNameResponse;
-import software.amazon.awssdk.services.route53.model.NoSuchHostedZoneException;
-import software.amazon.awssdk.services.route53.model.VPC;
+import software.amazon.awssdk.services.route53.model.*;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

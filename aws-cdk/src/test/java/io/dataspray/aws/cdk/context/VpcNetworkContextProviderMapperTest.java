@@ -13,23 +13,7 @@ import org.testng.annotations.Test;
 import software.amazon.awscdk.cloudassembly.schema.VpcContextQuery;
 import software.amazon.awscdk.cxapi.VpcSubnetGroupType;
 import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.DescribeRouteTablesRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeRouteTablesResponse;
-import software.amazon.awssdk.services.ec2.model.DescribeSubnetsRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeSubnetsResponse;
-import software.amazon.awssdk.services.ec2.model.DescribeVpcsRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeVpcsResponse;
-import software.amazon.awssdk.services.ec2.model.DescribeVpnGatewaysRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeVpnGatewaysResponse;
-import software.amazon.awssdk.services.ec2.model.Filter;
-import software.amazon.awssdk.services.ec2.model.Route;
-import software.amazon.awssdk.services.ec2.model.RouteTable;
-import software.amazon.awssdk.services.ec2.model.RouteTableAssociation;
-import software.amazon.awssdk.services.ec2.model.Subnet;
-import software.amazon.awssdk.services.ec2.model.Tag;
-import software.amazon.awssdk.services.ec2.model.Vpc;
-import software.amazon.awssdk.services.ec2.model.VpcAttachment;
-import software.amazon.awssdk.services.ec2.model.VpnGateway;
+import software.amazon.awssdk.services.ec2.model.*;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -42,7 +26,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -1103,7 +1087,7 @@ public class VpcNetworkContextProviderMapperTest {
 
         @Override
         public DescribeVpnGatewaysResponse answer(InvocationOnMock invocation) throws Throwable {
-            DescribeVpnGatewaysRequest request = invocation.getArgumentAt(0, DescribeVpnGatewaysRequest.class);
+            DescribeVpnGatewaysRequest request = invocation.getArgument(0, DescribeVpnGatewaysRequest.class);
             List<VpnGateway> vpnGateways = request.filters().stream()
                     .filter(f -> f.name().equals("attachment.vpc-id"))
                     .map(filter -> filter.values().get(0))
@@ -1129,7 +1113,7 @@ public class VpcNetworkContextProviderMapperTest {
 
         @Override
         public DescribeRouteTablesResponse answer(InvocationOnMock invocation) throws Throwable {
-            DescribeRouteTablesRequest request = invocation.getArgumentAt(0, DescribeRouteTablesRequest.class);
+            DescribeRouteTablesRequest request = invocation.getArgument(0, DescribeRouteTablesRequest.class);
             List<RouteTable> routeTables = request.filters().stream()
                     .filter(filter -> filter.name().equals("vpc-id"))
                     .map(filter -> filter.values().get(0))
@@ -1155,7 +1139,7 @@ public class VpcNetworkContextProviderMapperTest {
 
         @Override
         public DescribeSubnetsResponse answer(InvocationOnMock invocation) throws Throwable {
-            DescribeSubnetsRequest request = invocation.getArgumentAt(0, DescribeSubnetsRequest.class);
+            DescribeSubnetsRequest request = invocation.getArgument(0, DescribeSubnetsRequest.class);
             List<Subnet> subnets = request.filters().stream()
                     .filter(filter -> filter.name().equals("vpc-id"))
                     .map(filter -> filter.values().get(0))

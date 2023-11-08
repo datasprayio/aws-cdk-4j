@@ -11,7 +11,7 @@ import software.amazon.awssdk.services.ssm.model.GetParameterResponse;
 import software.amazon.awssdk.services.ssm.model.Parameter;
 import software.amazon.awssdk.services.ssm.model.ParameterNotFoundException;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

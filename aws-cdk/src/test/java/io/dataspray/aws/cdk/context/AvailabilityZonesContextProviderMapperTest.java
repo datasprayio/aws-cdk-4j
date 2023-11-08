@@ -12,7 +12,7 @@ import software.amazon.awssdk.services.ec2.model.DescribeAvailabilityZonesRespon
 
 import java.util.List;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.services.ec2.model.AvailabilityZoneState.*;
