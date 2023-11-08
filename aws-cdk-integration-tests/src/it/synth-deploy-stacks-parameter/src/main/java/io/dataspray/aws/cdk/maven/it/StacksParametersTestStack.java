@@ -1,7 +1,7 @@
 package io.dataspray.aws.cdk.maven.it;
 
 import software.amazon.awscdk.CfnParameter;
-import software.amazon.awscdk.Construct;
+import software.constructs.Construct;
 import software.amazon.awscdk.RemovalPolicy;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.services.dynamodb.Attribute;

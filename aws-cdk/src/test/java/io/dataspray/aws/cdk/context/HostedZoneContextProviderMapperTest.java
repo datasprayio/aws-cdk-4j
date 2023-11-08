@@ -184,7 +184,7 @@ public class HostedZoneContextProviderMapperTest {
 
         when(route53Client.getHostedZone(any(GetHostedZoneRequest.class)))
                 .thenAnswer(invocation -> {
-                    GetHostedZoneRequest request = invocation.getArgumentAt(0, GetHostedZoneRequest.class);
+                    GetHostedZoneRequest request = invocation.getArgument(0, GetHostedZoneRequest.class);
                     String id = request.id();
                     HostedZone hostedZone = mockData.getHostedZone(id);
                     if (hostedZone == null) {
