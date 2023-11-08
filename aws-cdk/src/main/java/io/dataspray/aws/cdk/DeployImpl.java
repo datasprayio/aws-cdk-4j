@@ -11,11 +11,7 @@ import software.amazon.awscdk.cxapi.CloudAssembly;
 import software.amazon.awscdk.cxapi.CloudFormationStackArtifact;
 
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Deploys the synthesized templates to the AWS.
@@ -25,33 +21,33 @@ public class DeployImpl implements Deploy {
     private static final Logger logger = LoggerFactory.getLogger(DeployImpl.class);
 
     @Override
-    public void execute(CloudAssembly cloudAssembly, String toolkitStackName, Set<String> stacks, Map<String, String> parameters, Map<String, String> tags, Set<String> notificationArns, Optional<String> profileOpt, boolean isInteractive) {
-        execute(CloudDefinition.create(cloudAssembly), toolkitStackName, stacks, parameters, tags, notificationArns, profileOpt, isInteractive);
+    public void execute(CloudAssembly cloudAssembly, String toolkitStackName, Set<String> stacks, Map<String, String> parameters, Map<String, String> tags, Set<String> notificationArns, Optional<String> profileOpt) {
+        execute(CloudDefinition.create(cloudAssembly), toolkitStackName, stacks, parameters, tags, notificationArns, profileOpt);
     }
 
     @Override
-    public void execute(Path cloudAssemblyDirectory, String toolkitStackName, Set<String> stacks, Map<String, String> parameters, Map<String, String> tags, Set<String> notificationArns, Optional<String> profileOpt, boolean isInteractive) {
-        execute(CloudDefinition.create(cloudAssemblyDirectory), toolkitStackName, stacks, parameters, tags, notificationArns, profileOpt, isInteractive);
+    public void execute(Path cloudAssemblyDirectory, String toolkitStackName, Set<String> stacks, Map<String, String> parameters, Map<String, String> tags, Set<String> notificationArns, Optional<String> profileOpt) {
+        execute(CloudDefinition.create(cloudAssemblyDirectory), toolkitStackName, stacks, parameters, tags, notificationArns, profileOpt);
     }
 
     @Override
     public void execute(CloudAssembly cloudAssembly) {
         execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME,
                 ImmutableSet.copyOf(Lists.transform(cloudAssembly.getStacks(), CloudFormationStackArtifact::getStackName)),
-                null, null, ImmutableSet.of(), Optional.empty(), true);
+                null, null, ImmutableSet.of(), Optional.empty());
     }
 
     @Override
     public void execute(CloudAssembly cloudAssembly, String... stacks) {
-        execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME, ImmutableSet.copyOf(stacks), null, null, ImmutableSet.of(), Optional.empty(), true);
+        execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME, ImmutableSet.copyOf(stacks), null, null, ImmutableSet.of(), Optional.empty());
     }
 
     @Override
     public void execute(CloudAssembly cloudAssembly, Set<String> stacks, String profile) {
-        execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME, stacks, null, null, ImmutableSet.of(), Optional.of(profile), true);
+        execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME, stacks, null, null, ImmutableSet.of(), Optional.of(profile));
     }
 
-    private void execute(CloudDefinition cloudDefinition, String toolkitStackName, Set<String> stacks, Map<String, String> parameters, Map<String, String> tags, Set<String> notificationArns, Optional<String> profileOpt, boolean isInteractive) {
+    private void execute(CloudDefinition cloudDefinition, String toolkitStackName, Set<String> stacks, Map<String, String> parameters, Map<String, String> tags, Set<String> notificationArns, Optional<String> profileOpt) {
         EnvironmentResolver environmentResolver = EnvironmentResolver.create(profileOpt.orElse(null));
         if (stacks != null && !stacks.isEmpty() && logger.isWarnEnabled()) {
             Set<String> undefinedStacks = new HashSet<>(stacks);
@@ -79,15 +75,14 @@ public class DeployImpl implements Deploy {
                     ResolvedEnvironment resolvedEnvironment = environmentResolver.resolve(environment);
                     ToolkitConfiguration toolkitConfiguration = new ToolkitConfiguration(toolkitStackName);
                     return new StackDeployer(cloudDefinition.getCloudAssemblyDirectory(), resolvedEnvironment,
-                            toolkitConfiguration, filePublisher, dockerImagePublisher, notificationArns, isInteractive);
+                            toolkitConfiguration, filePublisher, dockerImagePublisher, notificationArns);
                 });
 
                 Map<String, ParameterValue> assetParameters = assetDeployer.deploy(
                         stack,
                         cloudDefinition.getCloudAssemblyDirectory(),
                         deployer.getEnvironment(),
-                        deployer.getToolkitConfiguration(),
-                        isInteractive);
+                        deployer.getToolkitConfiguration());
 
                 if (!stack.getResources().isEmpty()) {
                     deployer.deploy(stack, assetParameters, parameters != null ? parameters : ImmutableMap.of(), tags != null ? tags : ImmutableMap.of());

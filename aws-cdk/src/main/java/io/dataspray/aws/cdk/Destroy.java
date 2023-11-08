@@ -14,13 +14,11 @@ public interface Destroy {
      * @param cloudAssemblyDirectory Directory of synthesized stack(s)
      * @param stacks Stacks, for which bootstrapping will be performed if it's required.
      * @param profileOpt Optional AWS account profile name
-     * @param isInteractive Whether session is interactive and logs should be printed
      */
     void execute(
             Path cloudAssemblyDirectory,
             Set<String> stacks,
-            Optional<String> profileOpt,
-            boolean isInteractive);
+            Optional<String> profileOpt);
 
     /**
      * Destroys CDK stack(s) for all stacks defined in cloud assembly
@@ -56,11 +54,9 @@ public interface Destroy {
      * @param cloudAssembly Cloud assembly created via app.synth()
      * @param stacks Stacks, for which bootstrapping will be performed if it's required.
      * @param profileOpt Optional AWS account profile name
-     * @param isInteractive Whether session is interactive and logs should be printed
      */
     void execute(
             CloudAssembly cloudAssembly,
             Set<String> stacks,
-            Optional<String> profileOpt,
-            boolean isInteractive);
+            Optional<String> profileOpt);
 }

@@ -45,8 +45,7 @@ public abstract class AbstractCdkMojo extends AbstractMojo {
         if (!skip) {
             try {
                 execute(cloudAssemblyDirectory.toPath(),
-                        Optional.ofNullable(Strings.emptyToNull(profile)),
-                        settings.isInteractiveMode());
+                        Optional.ofNullable(Strings.emptyToNull(profile)));
             } catch (Exception e) {
                 throw new MojoExecutionException(e.getMessage(), e);
             }
@@ -57,6 +56,5 @@ public abstract class AbstractCdkMojo extends AbstractMojo {
 
     public abstract void execute(
             Path cloudAssemblyDirectory,
-            Optional<String> profileOpt,
-            boolean isInteractive);
+            Optional<String> profileOpt);
 }

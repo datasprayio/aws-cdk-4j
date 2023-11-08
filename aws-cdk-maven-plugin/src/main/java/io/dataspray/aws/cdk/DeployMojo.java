@@ -47,7 +47,7 @@ public class DeployMojo extends AbstractCdkMojo {
     private Set<String> notificationArns;
 
     @Override
-    public void execute(Path cloudAssemblyDirectory, Optional<String> profileOpt, boolean isInteractive) {
-        AwsCdk.deploy().execute(cloudAssemblyDirectory, toolkitStackName, stacks, parameters, tags, notificationArns, profileOpt, isInteractive);
+    public void execute(Path cloudAssemblyDirectory, Optional<String> profileOpt) {
+        AwsCdk.deploy().execute(cloudAssemblyDirectory, toolkitStackName, stacks, parameters, tags, notificationArns, profileOpt);
     }
 }

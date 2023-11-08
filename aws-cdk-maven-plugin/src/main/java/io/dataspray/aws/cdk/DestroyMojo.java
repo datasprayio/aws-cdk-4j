@@ -17,7 +17,7 @@ public class DestroyMojo extends AbstractCdkMojo {
     private Set<String> stacks;
 
     @Override
-    public void execute(Path cloudAssemblyDirectory, Optional<String> profileOpt, boolean isInteractive) {
-        AwsCdk.destroy().execute(cloudAssemblyDirectory, stacks, profileOpt, isInteractive);
+    public void execute(Path cloudAssemblyDirectory, Optional<String> profileOpt) {
+        AwsCdk.destroy().execute(cloudAssemblyDirectory, stacks, profileOpt);
     }
 }

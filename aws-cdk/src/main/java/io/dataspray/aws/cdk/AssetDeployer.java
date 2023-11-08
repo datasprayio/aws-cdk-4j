@@ -4,12 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awscdk.cloudassembly.schema.ContainerImageAssetMetadataEntry;
-import software.amazon.awscdk.cloudassembly.schema.DockerImageAsset;
-import software.amazon.awscdk.cloudassembly.schema.DockerImageDestination;
-import software.amazon.awscdk.cloudassembly.schema.FileAsset;
-import software.amazon.awscdk.cloudassembly.schema.FileAssetMetadataEntry;
-import software.amazon.awscdk.cloudassembly.schema.FileDestination;
+import software.amazon.awscdk.cloudassembly.schema.*;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
 import software.amazon.awssdk.services.cloudformation.model.Output;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
@@ -18,11 +13,7 @@ import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class AssetDeployer {
@@ -109,15 +100,14 @@ public class AssetDeployer {
             StackDefinition stack,
             Path cloudAssemblyDirectory,
             ResolvedEnvironment environment,
-            ToolkitConfiguration toolkitConfiguration,
-            boolean isInteractive) {
+            ToolkitConfiguration toolkitConfiguration) {
         List<Runnable> publishmentTasks = Lists.newArrayList();
         Map<String, ParameterValue> assetParameters = Maps.newHashMap();
 
         Toolkit toolkit = null;
         for (FileAssetMetadataEntry asset : stack.getFileAssets()) {
             if (toolkit == null) {
-                toolkit = getToolkit(stack, environment, toolkitConfiguration, isInteractive);
+                toolkit = getToolkit(stack, environment, toolkitConfiguration);
             }
             String bucketName = toolkit.getBucketName();
             String prefix = generatePrefix(asset);
@@ -278,14 +268,13 @@ public class AssetDeployer {
     private Toolkit getToolkit(
             StackDefinition stack,
             ResolvedEnvironment environment,
-            ToolkitConfiguration toolkitConfiguration,
-            boolean isInteractive) {
+            ToolkitConfiguration toolkitConfiguration) {
         CloudFormationClient client = CloudFormationClientProvider.get(environment);
         Stack toolkitStack = Stacks.findStack(client, toolkitConfiguration.getStackName()).orElse(null);
         if (toolkitStack != null && Stacks.isInProgress(toolkitStack)) {
             logger.info("Waiting until toolkit stack reaches stable state, environment={}, stackName={}",
                     environment, toolkitConfiguration.getStackName());
-            toolkitStack = awaitCompletion(toolkitStack, client, isInteractive);
+            toolkitStack = awaitCompletion(toolkitStack, client);
         }
 
         if (toolkitStack == null || toolkitStack.stackStatus() == StackStatus.DELETE_COMPLETE ||
@@ -338,9 +327,9 @@ public class AssetDeployer {
         return new Toolkit(bucketName, bucketDomainName);
     }
 
-    private Stack awaitCompletion(Stack stack, CloudFormationClient client, boolean isInteractive) {
+    private Stack awaitCompletion(Stack stack, CloudFormationClient client) {
         Stack completedStack;
-        if (logger.isInfoEnabled() && isInteractive) {
+        if (logger.isInfoEnabled()) {
             completedStack = Stacks.awaitCompletion(client, stack, new LoggingStackEventListener(Stacks.lastChange(stack)));
         } else {
             completedStack = Stacks.awaitCompletion(client, stack);

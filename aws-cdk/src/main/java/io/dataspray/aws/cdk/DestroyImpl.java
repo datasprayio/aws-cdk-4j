@@ -12,11 +12,7 @@ import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.IntStream;
 
 public class DestroyImpl implements Destroy {
@@ -24,33 +20,33 @@ public class DestroyImpl implements Destroy {
     private static final Logger logger = LoggerFactory.getLogger(DestroyImpl.class);
 
     @Override
-    public void execute(Path cloudAssemblyDirectory, Set<String> stacks, Optional<String> profileOpt, boolean isInteractive) {
-        execute(CloudDefinition.create(cloudAssemblyDirectory), stacks, profileOpt, isInteractive);
+    public void execute(Path cloudAssemblyDirectory, Set<String> stacks, Optional<String> profileOpt) {
+        execute(CloudDefinition.create(cloudAssemblyDirectory), stacks, profileOpt);
     }
 
     @Override
     public void execute(CloudAssembly cloudAssembly) {
         execute(cloudAssembly,
                 ImmutableSet.copyOf(Lists.transform(cloudAssembly.getStacks(), CloudFormationStackArtifact::getStackName)),
-                Optional.empty(), true);
+                Optional.empty());
     }
 
     @Override
     public void execute(CloudAssembly cloudAssembly, String... stacks) {
-        execute(cloudAssembly, ImmutableSet.copyOf(stacks), Optional.empty(), true);
+        execute(cloudAssembly, ImmutableSet.copyOf(stacks), Optional.empty());
     }
 
     @Override
     public void execute(CloudAssembly cloudAssembly, Set<String> stacks, String profile) {
-        execute(cloudAssembly, stacks, Optional.of(profile), true);
+        execute(cloudAssembly, stacks, Optional.of(profile));
     }
 
     @Override
-    public void execute(CloudAssembly cloudAssembly, Set<String> stacks, Optional<String> profileOpt, boolean isInteractive) {
-        execute(CloudDefinition.create(cloudAssembly), stacks, profileOpt, isInteractive);
+    public void execute(CloudAssembly cloudAssembly, Set<String> stacks, Optional<String> profileOpt) {
+        execute(CloudDefinition.create(cloudAssembly), stacks, profileOpt);
     }
 
-    private void execute(CloudDefinition cloudDefinition, Set<String> stacks, Optional<String> profileOpt, boolean isInteractive) {
+    private void execute(CloudDefinition cloudDefinition, Set<String> stacks, Optional<String> profileOpt) {
         EnvironmentResolver environmentResolver = EnvironmentResolver.create(profileOpt.orElse(null));
         if (stacks != null && !stacks.isEmpty() && logger.isWarnEnabled()) {
             Set<String> undefinedStacks = new HashSet<>(stacks);
@@ -72,12 +68,12 @@ public class DestroyImpl implements Destroy {
                         return CloudFormationClientProvider.get(resolvedEnvironment);
                     });
 
-                    destroy(client, stack, isInteractive);
+                    destroy(client, stack);
                 });
 
     }
 
-    private void destroy(CloudFormationClient client, StackDefinition stackDefinition, boolean isInteractive) {
+    private void destroy(CloudFormationClient client, StackDefinition stackDefinition) {
         Stack stack = Stacks.findStack(client, stackDefinition.getStackName())
                 .filter(s -> s.stackStatus() != StackStatus.DELETE_COMPLETE)
                 .orElse(null);
@@ -85,7 +81,7 @@ public class DestroyImpl implements Destroy {
             Instant startTime = Instant.now();
             stack = Stacks.deleteStack(client, stack.stackName());
             logger.info("The stack '{}' is being deleted, waiting until the operation is completed", stack.stackName());
-            if (logger.isInfoEnabled() && isInteractive) {
+            if (logger.isInfoEnabled()) {
                 stack = Stacks.awaitCompletion(client, stack, new LoggingStackEventListener(startTime));
             } else {
                 stack = Stacks.awaitCompletion(client, stack);

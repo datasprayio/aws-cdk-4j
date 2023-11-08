@@ -112,7 +112,7 @@ public class SynthMojo extends AbstractCdkMojo implements ContextEnabled {
     private Map<ContextProvider, ContextProviderMapper<?>> contextProviders;
 
     @Override
-    public void execute(Path cloudAssemblyDirectory, Optional<String> profileOpt, boolean isInteractive) {
+    public void execute(Path cloudAssemblyDirectory, Optional<String> profileOpt) {
         EnvironmentResolver environmentResolver = EnvironmentResolver.create(profileOpt.orElse(null));
         this.processRunner = new DefaultProcessRunner(project.getBasedir());
         this.contextProviders = initContextProviders(environmentResolver);

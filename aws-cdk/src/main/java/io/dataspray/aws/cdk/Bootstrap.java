@@ -22,7 +22,6 @@ public interface Bootstrap {
      * will be reused.
      * @param bootstrapTags Tags that will be added to the bootstrap stack.
      * @param profileOpt Optional AWS account profile name
-     * @param isInteractive Whether session is interactive and logs should be printed
      */
     void execute(
             Path cloudAssemblyDirectory,
@@ -30,8 +29,7 @@ public interface Bootstrap {
             Set<String> stacks,
             Map<String, String> bootstrapParameters,
             Map<String, String> bootstrapTags,
-            Optional<String> profileOpt,
-            boolean isInteractive);
+            Optional<String> profileOpt);
 
     /**
      * Bootstrap CDK for all stacks
@@ -72,7 +70,6 @@ public interface Bootstrap {
      * will be reused.
      * @param bootstrapTags Tags that will be added to the bootstrap stack.
      * @param profileOpt Optional AWS account profile name
-     * @param isInteractive Whether session is interactive and logs should be printed
      */
     void execute(
             CloudAssembly cloudAssembly,
@@ -80,6 +77,5 @@ public interface Bootstrap {
             Set<String> stacks,
             Map<String, String> bootstrapParameters,
             Map<String, String> bootstrapTags,
-            Optional<String> profileOpt,
-            boolean isInteractive);
+            Optional<String> profileOpt);
 }

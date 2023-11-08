@@ -15,11 +15,7 @@ import software.amazon.awssdk.services.cloudformation.model.Output;
 import software.amazon.awssdk.services.cloudformation.model.Stack;
 import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
@@ -46,33 +42,33 @@ public class BootstrapImpl implements Bootstrap {
     private static final String BOOTSTRAP_VERSION_OUTPUT = "BootstrapVersion";
 
     @Override
-    public void execute(Path cloudAssemblyDirectory, String toolkitStackName, Set<String> stacks, Map<String, String> bootstrapParameters, Map<String, String> bootstrapTags, Optional<String> profileOpt, boolean isInteractive) {
-        execute(CloudDefinition.create(cloudAssemblyDirectory), toolkitStackName, stacks, bootstrapParameters, bootstrapTags, profileOpt, isInteractive);
+    public void execute(Path cloudAssemblyDirectory, String toolkitStackName, Set<String> stacks, Map<String, String> bootstrapParameters, Map<String, String> bootstrapTags, Optional<String> profileOpt) {
+        execute(CloudDefinition.create(cloudAssemblyDirectory), toolkitStackName, stacks, bootstrapParameters, bootstrapTags, profileOpt);
     }
 
     @Override
     public void execute(CloudAssembly cloudAssembly) {
         execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME,
                 ImmutableSet.copyOf(Lists.transform(cloudAssembly.getStacks(), CloudFormationStackArtifact::getStackName)),
-                null, null, Optional.empty(), true);
+                null, null, Optional.empty());
     }
 
     @Override
     public void execute(CloudAssembly cloudAssembly, String... stacks) {
-        execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME, ImmutableSet.copyOf(stacks), null, null, Optional.empty(), true);
+        execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME, ImmutableSet.copyOf(stacks), null, null, Optional.empty());
     }
 
     @Override
     public void execute(CloudAssembly cloudAssembly, Set<String> stacks, String profile) {
-        execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME, stacks, null, null, Optional.of(profile), true);
+        execute(cloudAssembly, AwsCdk.DEFAULT_TOOLKIT_STACK_NAME, stacks, null, null, Optional.of(profile));
     }
 
     @Override
-    public void execute(CloudAssembly cloudAssembly, String toolkitStackName, Set<String> stacks, Map<String, String> bootstrapParameters, Map<String, String> bootstrapTags, Optional<String> profileOpt, boolean isInteractive) {
-        execute(CloudDefinition.create(cloudAssembly), toolkitStackName, stacks, bootstrapParameters, bootstrapTags, profileOpt, isInteractive);
+    public void execute(CloudAssembly cloudAssembly, String toolkitStackName, Set<String> stacks, Map<String, String> bootstrapParameters, Map<String, String> bootstrapTags, Optional<String> profileOpt) {
+        execute(CloudDefinition.create(cloudAssembly), toolkitStackName, stacks, bootstrapParameters, bootstrapTags, profileOpt);
     }
 
-    private void execute(CloudDefinition cloudDefinition, String toolkitStackName, Set<String> stacks, Map<String, String> bootstrapParameters, Map<String, String> bootstrapTags, Optional<String> profileOpt, boolean isInteractive) {
+    private void execute(CloudDefinition cloudDefinition, String toolkitStackName, Set<String> stacks, Map<String, String> bootstrapParameters, Map<String, String> bootstrapTags, Optional<String> profileOpt) {
         EnvironmentResolver environmentResolver = EnvironmentResolver.create(profileOpt.orElse(null));
         Map<String, Integer> environments = cloudDefinition.getStacks().stream()
                 .filter(stack -> stacks == null || stacks.isEmpty() || stacks.contains(stack.getStackName()))
@@ -96,11 +92,11 @@ public class BootstrapImpl implements Bootstrap {
             bootstrap(toolkitStackName,
                     bootstrapParameters != null ? bootstrapParameters : ImmutableMap.of(),
                     bootstrapTags != null ? bootstrapTags : ImmutableMap.of(),
-                    resolvedEnvironment, version, isInteractive);
+                    resolvedEnvironment, version);
         });
     }
 
-    private void bootstrap(String toolkitStackName, Map<String, String> bootstrapParameters, Map<String, String> bootstrapTags, ResolvedEnvironment environment, int version, boolean isInteractive) {
+    private void bootstrap(String toolkitStackName, Map<String, String> bootstrapParameters, Map<String, String> bootstrapTags, ResolvedEnvironment environment, int version) {
         CloudFormationClient client = CloudFormationClientProvider.get(environment);
 
         Stack toolkitStack = Stacks.findStack(client, toolkitStackName).orElse(null);
@@ -108,12 +104,12 @@ public class BootstrapImpl implements Bootstrap {
             if (Stacks.isInProgress(toolkitStack)) {
                 logger.info("Waiting until toolkit stack reaches stable state, environment={}, stackName={}",
                         environment, toolkitStackName);
-                toolkitStack = awaitCompletion(client, toolkitStack, isInteractive);
+                toolkitStack = awaitCompletion(client, toolkitStack);
             }
             if (toolkitStack.stackStatus() == StackStatus.ROLLBACK_COMPLETE || toolkitStack.stackStatus() == StackStatus.ROLLBACK_FAILED) {
                 logger.warn("The toolkit stack is in {} state. The stack will be deleted and a new one will be" +
                         " created, environment={}, stackName={}", StackStatus.ROLLBACK_COMPLETE, environment, toolkitStackName);
-                toolkitStack = awaitCompletion(client, Stacks.deleteStack(client, toolkitStack.stackId()), isInteractive);
+                toolkitStack = awaitCompletion(client, Stacks.deleteStack(client, toolkitStack.stackId()));
 
             }
             if (Stacks.isFailed(toolkitStack)) {
@@ -176,7 +172,7 @@ public class BootstrapImpl implements Bootstrap {
             if (!Stacks.isCompleted(toolkitStack)) {
                 logger.info("Waiting until the toolkit stack reaches stable state, environment={}, stackName={}",
                         environment, toolkitStackName);
-                toolkitStack = awaitCompletion(client, toolkitStack, isInteractive);
+                toolkitStack = awaitCompletion(client, toolkitStack);
             }
             if (Stacks.isFailed(toolkitStack)) {
                 throw BootstrapException.deploymentError(toolkitStackName, environment)
@@ -207,9 +203,9 @@ public class BootstrapImpl implements Bootstrap {
         }
     }
 
-    private Stack awaitCompletion(CloudFormationClient client, Stack stack, boolean isInteractive) {
+    private Stack awaitCompletion(CloudFormationClient client, Stack stack) {
         Stack completedStack;
-        if (logger.isInfoEnabled() && isInteractive) {
+        if (logger.isInfoEnabled()) {
             completedStack = Stacks.awaitCompletion(client, stack, new LoggingStackEventListener(Stacks.lastChange(stack)));
         } else {
             completedStack = Stacks.awaitCompletion(client, stack);

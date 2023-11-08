@@ -35,22 +35,19 @@ public class StackDeployer {
     private final FileAssetPublisher fileAssetPublisher;
     private final DockerImageAssetPublisher dockerImagePublisher;
     private final Set<String> notificationArns;
-    private final boolean isInteractive;
 
     public StackDeployer(Path cloudAssemblyDirectory,
                          ResolvedEnvironment environment,
                          ToolkitConfiguration toolkitConfiguration,
                          FileAssetPublisher fileAssetPublisher,
                          DockerImageAssetPublisher dockerImagePublisher,
-                         Set<String> notificationArns,
-                         boolean isInteractive) {
+                         Set<String> notificationArns) {
         this.cloudAssemblyDirectory = cloudAssemblyDirectory;
         this.environment = environment;
         this.toolkitConfiguration = toolkitConfiguration;
         this.fileAssetPublisher = fileAssetPublisher;
         this.dockerImagePublisher = dockerImagePublisher;
         this.notificationArns = notificationArns;
-        this.isInteractive = isInteractive;
         this.client = CloudFormationClientProvider.get(environment);
     }
 
@@ -289,7 +286,7 @@ public class StackDeployer {
 
     private Stack awaitCompletion(Stack stack) {
         Stack completedStack;
-        if (logger.isInfoEnabled() && isInteractive) {
+        if (logger.isInfoEnabled()) {
             completedStack = Stacks.awaitCompletion(client, stack, new LoggingStackEventListener(Stacks.lastChange(stack)));
         } else {
             completedStack = Stacks.awaitCompletion(client, stack);
