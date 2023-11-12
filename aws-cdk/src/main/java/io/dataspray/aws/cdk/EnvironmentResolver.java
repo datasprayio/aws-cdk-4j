@@ -3,12 +3,7 @@ package io.dataspray.aws.cdk;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.*;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsProfileRegionProvider;
@@ -39,6 +34,7 @@ public class EnvironmentResolver {
 
     private static final String SCHEMA_PREFIX = "aws://";
     private static final String UNKNOWN_ACCOUNT = "unknown-account";
+    private static final String CURRENT_ACCOUNT = "current_account";
     private static final String UNKNOWN_REGION = "unknown-region";
     private static final String CURRENT_REGION = "current_region";
 
@@ -88,7 +84,7 @@ public class EnvironmentResolver {
                 String account = !parts[0].equals(UNKNOWN_ACCOUNT) ? parts[0] : defaultAccount;
                 Region region = !parts[1].equals(UNKNOWN_REGION) ? Region.of(parts[1]) : defaultRegion;
                 if (account == null) {
-                    throw new CdkException("Unable to dynamically determine which AWS account to use for deployment");
+                    throw new CdkException("Unable to dynamically determine which AWS account to use for deployment; environment " + environment);
                 }
 
                 AwsCredentials credentials = accountCredentialsProvider.get(account)
@@ -107,7 +103,7 @@ public class EnvironmentResolver {
         logger.debug("Resolving env from destination {}", destinationKey);
         String[] parts = destinationKey.split("-", 2);
         if (parts.length == 2) {
-            String account = !parts[0].equals(UNKNOWN_ACCOUNT) ? parts[0] : defaultAccount;
+            String account = (!parts[0].equals(UNKNOWN_ACCOUNT) && !parts[0].equals(CURRENT_ACCOUNT)) ? parts[0] : defaultAccount;
             Region region = (!parts[1].equals(UNKNOWN_REGION) && !parts[1].equals(CURRENT_REGION)) ? Region.of(parts[1]) : defaultRegion;
             if (account == null) {
                 throw new CdkException("Unable to dynamically determine which AWS account to use for deployment");

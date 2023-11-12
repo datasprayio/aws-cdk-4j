@@ -25,8 +25,8 @@ public class DeployBasicTestApp {
                 ImmutableSet.copyOf(Lists.transform(assembly.getStacks(), CloudFormationStackArtifact::getStackName)),
                 ImmutableMap.of("Parameter", "OverriddenValue"),
                 ImmutableMap.of("testTag", "testTagValue"),
-                Optional.empty(),
-                true);
+                ImmutableSet.of(),
+                Optional.empty());
     }
 
 }

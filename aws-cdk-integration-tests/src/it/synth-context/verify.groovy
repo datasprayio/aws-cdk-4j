@@ -12,7 +12,6 @@ def region = new DefaultAwsRegionProviderChain().region;
 
 def context = JSON.parse(contextFile);
 assert context.keySet() == [
-        "@aws-cdk/core:enableStackNameDuplicates",
         "aws-cdk:enableDiffNoFail",
         "availability-zones:account=${expectedAccountId}:region=${region}"
 ] as Set

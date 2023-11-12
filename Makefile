@@ -1,11 +1,11 @@
 
 
 run-it-macos:
-	AWS_PROFILE=dataspray mvn --batch-mode clean install -DskipUTs=true -DskipITs=false -D"invoker.test"='*/pom.xml,!synth-deploy-ecs-service/pom.xml'
+	mvn --batch-mode clean install -DskipUTs=true -DskipITs=false -D"invoker.test"='*/pom.xml,!synth-deploy-ecs-service/pom.xml'
 run-it-windows:
-	AWS_PROFILE=dataspray mvn --batch-mode clean install -DskipUTs=true -DskipITs=false -D"invoker.test"='*/pom.xml,!synth-deploy-ecs-service/pom.xml'
+	mvn --batch-mode clean install -DskipUTs=true -DskipITs=false -D"invoker.test"='*/pom.xml,!synth-deploy-ecs-service/pom.xml'
 run-it-linux:
-	AWS_PROFILE=dataspray mvn --batch-mode clean install -DskipUTs=true -DskipITs=false -D"invoker.test"='*/pom.xml'
+	mvn --batch-mode clean install -DskipUTs=true -DskipITs=false -D"invoker.test"='*/pom.xml'
 
 release-patch:
 	mvn build-helper:parse-version \

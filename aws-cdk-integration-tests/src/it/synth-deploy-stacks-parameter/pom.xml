@@ -24,16 +24,6 @@
             <artifactId>aws-cdk-lib</artifactId>
             <version>${cdk.version}</version>
         </dependency>
-        <dependency>
-            <groupId>software.amazon.awscdk</groupId>
-            <artifactId>s3-assets</artifactId>
-            <version>${cdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awscdk</groupId>
-            <artifactId>dynamodb</artifactId>
-            <version>${cdk.version}</version>
-        </dependency>
     </dependencies>
 
     <build>

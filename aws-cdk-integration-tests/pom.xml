@@ -41,10 +41,12 @@
                     <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
                     <settingsFile>src/it/settings.xml</settingsFile>
                     <scriptVariables>
-                        <AWS_PROFILE>aws-cdk-it</AWS_PROFILE>
+                        <AWS_REGION>us-east-1</AWS_REGION>
+                        <AWS_PROFILE>dataspray</AWS_PROFILE>
                     </scriptVariables>
                     <environmentVariables>
-                        <AWS_PROFILE>aws-cdk-it</AWS_PROFILE>
+                        <AWS_REGION>us-east-1</AWS_REGION>
+                        <AWS_PROFILE>dataspray</AWS_PROFILE>
                     </environmentVariables>
                     <streamLogs>false</streamLogs>
                     <streamLogsOnFailures>true</streamLogsOnFailures>
@@ -71,7 +73,7 @@
                     <dependency>
                         <groupId>org.codehaus.groovy</groupId>
                         <artifactId>groovy-all</artifactId>
-                        <version>3.0.13</version>
+                        <version>3.0.19</version>
                         <type>pom</type>
                     </dependency>
                     <dependency>
