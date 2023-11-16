@@ -20,7 +20,7 @@ public class DeployBasicTestStack extends Stack {
 
         Bucket bucket = Bucket.Builder.create(this, "Bucket")
                 .removalPolicy(RemovalPolicy.DESTROY)
-                .bucketName(String.join("-", id, "data", stage))
+                .bucketName(String.join("-", id, stage))
                 .blockPublicAccess(BlockPublicAccess.BLOCK_ALL)
                 .build();
 

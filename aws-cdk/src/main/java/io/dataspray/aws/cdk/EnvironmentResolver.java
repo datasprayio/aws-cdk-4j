@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.*;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.regions.PartitionMetadata;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsProfileRegionProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
@@ -17,6 +18,8 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Resolves the execution environment i.e. populates account/region-agnostic environments with the default values and
@@ -32,7 +35,7 @@ public class EnvironmentResolver {
 
     private static final Logger logger = LoggerFactory.getLogger(EnvironmentResolver.class);
 
-    private static final String SCHEMA_PREFIX = "aws://";
+    private static final Pattern ENVIRONMENT_URI_PATTERN = Pattern.compile("^(?<partition>aws(-.*)?)://(?<account>.*)/(?<region>.*)$");
     private static final String UNKNOWN_ACCOUNT = "unknown-account";
     private static final String CURRENT_ACCOUNT = "current_account";
     private static final String UNKNOWN_REGION = "unknown-region";
@@ -70,7 +73,7 @@ public class EnvironmentResolver {
     /**
      * Resolves an environment from the given environment URI.
      *
-     * @param environment an environment URI in the following format: {@code aws://account/region}
+     * @param environment an environment URI in the following format: {@code partition://account/region}
      * @return resolved environment
      * @throws IllegalArgumentException if the given environment URI is invalid
      * @throws CdkException in case the given environment is account-agnostic and a default account cannot be
@@ -78,46 +81,72 @@ public class EnvironmentResolver {
      */
     public ResolvedEnvironment resolve(String environment) {
         logger.debug("Resolving env from {}", environment);
-        if (environment.startsWith(SCHEMA_PREFIX)) {
-            String[] parts = environment.substring(SCHEMA_PREFIX.length()).split("/");
-            if (parts.length == 2) {
-                String account = !parts[0].equals(UNKNOWN_ACCOUNT) ? parts[0] : defaultAccount;
-                Region region = !parts[1].equals(UNKNOWN_REGION) ? Region.of(parts[1]) : defaultRegion;
-                if (account == null) {
-                    throw new CdkException("Unable to dynamically determine which AWS account to use for deployment; environment " + environment);
-                }
 
-                AwsCredentials credentials = accountCredentialsProvider.get(account)
-                        .orElseThrow(() -> new CdkException("Credentials for the account '" + account +
-                                "' are not available."));
-
-                return new ResolvedEnvironment(region, account, credentials);
-            }
+        Matcher matcher = ENVIRONMENT_URI_PATTERN.matcher(environment);
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException("Invalid environment format '" + environment + "'. Expected format: " +
+                    "<partition>://<account>/<region>");
         }
 
-        throw new IllegalArgumentException("Invalid environment format '" + environment + "'. Expected format: " +
-                "aws://account/region");
+        return resolveFromDestination(
+                matcher.group("partition"),
+                matcher.group("account"),
+                matcher.group("region"));
     }
 
     public ResolvedEnvironment resolveFromDestination(String destinationKey) {
         logger.debug("Resolving env from destination {}", destinationKey);
         String[] parts = destinationKey.split("-", 2);
-        if (parts.length == 2) {
-            String account = (!parts[0].equals(UNKNOWN_ACCOUNT) && !parts[0].equals(CURRENT_ACCOUNT)) ? parts[0] : defaultAccount;
-            Region region = (!parts[1].equals(UNKNOWN_REGION) && !parts[1].equals(CURRENT_REGION)) ? Region.of(parts[1]) : defaultRegion;
-            if (account == null) {
-                throw new CdkException("Unable to dynamically determine which AWS account to use for deployment");
-            }
-
-            AwsCredentials credentials = accountCredentialsProvider.get(account)
-                    .orElseThrow(() -> new CdkException("Credentials for the account '" + account +
-                            "' are not available."));
-
-            return new ResolvedEnvironment(region, account, credentials);
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("Invalid environment format '" + destinationKey + "'. Expected format: " +
+                    "account-region");
         }
 
-        throw new IllegalArgumentException("Invalid environment format '" + destinationKey + "'. Expected format: " +
-                "account-region");
+        return resolveFromDestination(
+                null,
+                parts[0],
+                parts[1]);
+    }
+
+    private ResolvedEnvironment resolveFromDestination(@Nullable String partitionStr, @Nullable String accountStr, @Nullable String regionStr) {
+
+        // Resolve account
+        final String account;
+        if (Strings.isNullOrEmpty(accountStr)
+                || UNKNOWN_ACCOUNT.equals(accountStr)
+                || CURRENT_ACCOUNT.equals(accountStr)) {
+            account = defaultAccount;
+        } else {
+            account = accountStr;
+        }
+        if (account == null) {
+            throw new CdkException("Unable to dynamically determine which AWS account to use for deployment");
+        }
+
+        // Resolve region
+        final Region region;
+        if (Strings.isNullOrEmpty(regionStr)
+                || UNKNOWN_REGION.equals(regionStr)
+                || CURRENT_REGION.equals(regionStr)) {
+            region = defaultRegion;
+        } else {
+            region = Region.of(regionStr);
+        }
+
+        // Resolve partition
+        final PartitionMetadata partition;
+        if (Strings.isNullOrEmpty(partitionStr)) {
+            partition = PartitionMetadata.of(region);
+        } else {
+            partition = PartitionMetadata.of(partitionStr);
+        }
+
+        // Resolve credentials
+        AwsCredentials credentials = accountCredentialsProvider.get(account)
+                .orElseThrow(() -> new CdkException("Credentials for the account '" + account +
+                        "' are not available."));
+
+        return new ResolvedEnvironment(partition, region, account, credentials);
     }
 
     @Nonnull
@@ -168,7 +197,9 @@ public class EnvironmentResolver {
 
         try {
             return Optional.of(credentialsProvider.resolveCredentials());
-        } catch (SdkClientException e) {
+        } catch (Exception ignored) {
+            // Although we should be fine catching SdkClientException | IllegalStateException
+            // It's unclear whether there are additional exceptions that could be thrown
             return Optional.empty();
         }
     }

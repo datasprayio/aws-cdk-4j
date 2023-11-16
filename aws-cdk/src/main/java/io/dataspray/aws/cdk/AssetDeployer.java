@@ -227,7 +227,8 @@ public class AssetDeployer {
                     .withArguments(dockerBuildArgs)
                     .withTarget(dockerBuildTarget)
                     .build();
-            dockerImagePublisher.publish(repositoryName, imageTag, imageBuild, environment);
+            String repositoryNameResolved = environment.resolveVariables(repositoryName);
+            dockerImagePublisher.publish(repositoryNameResolved, imageTag, imageBuild, environment);
         };
     }
 

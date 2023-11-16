@@ -6,24 +6,9 @@ import io.dataspray.aws.cdk.process.ProcessRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ecr.EcrClient;
-import software.amazon.awssdk.services.ecr.model.AuthorizationData;
-import software.amazon.awssdk.services.ecr.model.CreateRepositoryRequest;
-import software.amazon.awssdk.services.ecr.model.CreateRepositoryResponse;
-import software.amazon.awssdk.services.ecr.model.DescribeImagesRequest;
-import software.amazon.awssdk.services.ecr.model.DescribeImagesResponse;
-import software.amazon.awssdk.services.ecr.model.DescribeRepositoriesRequest;
-import software.amazon.awssdk.services.ecr.model.DescribeRepositoriesResponse;
-import software.amazon.awssdk.services.ecr.model.ImageDetail;
-import software.amazon.awssdk.services.ecr.model.ImageIdentifier;
-import software.amazon.awssdk.services.ecr.model.ImageNotFoundException;
-import software.amazon.awssdk.services.ecr.model.Repository;
-import software.amazon.awssdk.services.ecr.model.RepositoryNotFoundException;
+import software.amazon.awssdk.services.ecr.model.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class DockerImageAssetPublisher {
 
@@ -75,7 +60,7 @@ public class DockerImageAssetPublisher {
             try {
                 processRunner.run(ImmutableList.of("docker", "push", imageUri));
             } catch (ProcessExecutionException e) {
-                throw new CdkException("Unable to push the image " + imageUri + " to the ECR repository");
+                throw new CdkException("Unable to push the image " + imageUri + " to the ECR repository", e);
             }
         }
     }

@@ -21,11 +21,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.dataspray</groupId>
-            <artifactId>aws-cdk</artifactId>
-            <version>@project.version@</version>
-        </dependency>
-        <dependency>
             <groupId>software.amazon.awscdk</groupId>
             <artifactId>aws-cdk-lib</artifactId>
             <version>${cdk.version}</version>

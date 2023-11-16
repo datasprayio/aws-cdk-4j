@@ -19,14 +19,6 @@
         <shade.plugin.version>3.2.2</shade.plugin.version>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>io.dataspray</groupId>
-            <artifactId>aws-cdk</artifactId>
-            <version>@project.version@</version>
-        </dependency>
-    </dependencies>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -39,16 +31,6 @@
             <dependency>
                 <groupId>software.amazon.awscdk</groupId>
                 <artifactId>aws-cdk-lib</artifactId>
-                <version>${cdk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awscdk</groupId>
-                <artifactId>apigateway</artifactId>
-                <version>${cdk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awscdk</groupId>
-                <artifactId>cloudformation</artifactId>
                 <version>${cdk.version}</version>
             </dependency>
             <dependency>
