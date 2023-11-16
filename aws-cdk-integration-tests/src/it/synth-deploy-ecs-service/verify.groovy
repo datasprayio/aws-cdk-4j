@@ -10,7 +10,6 @@ import java.util.stream.Stream
 final STACK_NAME = "synth-deploy-ecs-service-test-stack"
 final TOOLKIT_STACK_NAME = "ecs-service-it-cdk-toolkit"
 
-System.properties.'aws.profile' = AWS_PROFILE
 CloudFormationClient cfnClient = CloudFormationClient.create();
 
 try {

@@ -11,8 +11,6 @@ import java.util.Optional;
 
 public class ProcessContext {
 
-    public static final ProcessContext DEFAULT = ProcessContext.builder().build();
-
     private final File workingDirectory;
     private final Map<String, String> environment;
     private final OutputStream output;

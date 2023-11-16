@@ -8,7 +8,6 @@ import java.util.stream.Stream
 final STACK_NAME = "deploy-lambda-function-test-stack"
 final TOOLKIT_STACK_NAME = "lambda-function-it-cdk-toolkit";
 
-System.properties.'aws.profile' = AWS_PROFILE
 CloudFormationClient cfnClient = CloudFormationClient.create();
 
 try {

@@ -7,7 +7,6 @@ import java.util.stream.Stream
 final STACK_NAME = "synth-deploy-basic-test-stack"
 final TOOLKIT_STACK_NAME = "basic-it-cdk-toolkit"
 
-System.properties.'aws.profile' = AWS_PROFILE
 CloudFormationClient cfnClient = CloudFormationClient.create();
 
 try {

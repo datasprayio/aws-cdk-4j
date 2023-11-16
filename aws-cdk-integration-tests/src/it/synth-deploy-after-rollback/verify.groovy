@@ -4,7 +4,6 @@ import software.amazon.awssdk.services.cloudformation.model.StackStatus
 
 final STACK_NAME = "synth-deploy-after-rollback-test-stack"
 
-System.properties.'aws.profile' = AWS_PROFILE
 CloudFormationClient cfnClient = CloudFormationClient.create();
 
 try {
