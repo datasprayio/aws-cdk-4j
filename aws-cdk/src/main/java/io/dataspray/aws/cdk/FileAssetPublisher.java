@@ -43,7 +43,7 @@ public class FileAssetPublisher {
      * @throws IOException if I/O error occurs while uploading a file or directory
      */
     public void publish(Path file, String objectName, String bucketName, ResolvedEnvironment environment) throws IOException {
-        logger.info("Publishing file asset, file={}, bucketName={}, objectName={}", file, bucketName, objectName);
+        logger.info("Publishing dst=s3://{}/{}", bucketName, objectName);
         if (Files.isDirectory(file)) {
             publishDirectory(file, objectName, bucketName, environment);
         } else {
