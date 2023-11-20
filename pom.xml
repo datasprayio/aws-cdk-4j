@@ -49,7 +49,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <!-- Minimum supported version, do not bump -->
         <maven.version>3.5.0</maven.version>
-        <maven.tools.version>3.10.1</maven.tools.version>
+        <maven.tools.version>3.10.2</maven.tools.version>
         <aws.crt.version>0.28.6</aws.crt.version>
         <aws.sdk.version>2.21.15</aws.sdk.version>
         <aws.cdk.version>2.105.0</aws.cdk.version>
