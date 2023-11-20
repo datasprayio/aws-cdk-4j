@@ -1,27 +1,21 @@
 package io.dataspray.aws.cdk;
 
-import com.google.common.net.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.zeroturnaround.zip.ZipUtil;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.BlockingOutputStreamAsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.CompletedUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
-import software.amazon.awssdk.utils.CancellableOutputStream;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.CompletableFuture;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 /**
  * Publishes file assets to S3.
@@ -43,7 +37,7 @@ public class FileAssetPublisher {
      * @throws IOException if I/O error occurs while uploading a file or directory
      */
     public void publish(Path file, String objectName, String bucketName, ResolvedEnvironment environment) throws IOException {
-        logger.info("Publishing dst=s3://{}/{}", bucketName, objectName);
+        logger.info("Publishing s3://{}/{}", bucketName, objectName);
         if (Files.isDirectory(file)) {
             publishDirectory(file, objectName, bucketName, environment);
         } else {
@@ -68,24 +62,10 @@ public class FileAssetPublisher {
      * Zips the directory and uploads it to S3 bucket.
      */
     private void publishDirectory(Path directory, String objectName, String bucketName, ResolvedEnvironment environment) throws IOException {
-        BlockingOutputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingOutputStream(null);
-        CompletableFuture<CompletedUpload> uploadFuture = upload(environment, body, bucketName, objectName, MediaType.ZIP.toString());
-        try (
-                CancellableOutputStream outputStream = body.outputStream();
-                ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream)
-        ) {
-            Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    ZipEntry zipEntry = new ZipEntry(directory.relativize(file).toString());
-                    zipOutputStream.putNextEntry(zipEntry);
-                    Files.copy(file, zipOutputStream);
-                    zipOutputStream.closeEntry();
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        }
-        uploadFuture.join();
+        Path tempDir = Files.createTempDirectory("aws-cdk-4j-" + objectName);
+        File packedFile = tempDir.resolve(objectName).toFile();
+        ZipUtil.pack(directory.toFile(), packedFile);
+        publishFile(packedFile, objectName, bucketName, environment);
     }
 
     /**
@@ -99,6 +79,13 @@ public class FileAssetPublisher {
      * Uploads the file to S3 bucket.
      */
     private void publishFile(Path file, String objectName, String bucketName, ResolvedEnvironment environment) throws IOException {
+        upload(environment, AsyncRequestBody.fromFile(file), bucketName, objectName).join();
+    }
+
+    /**
+     * Uploads the file to S3 bucket.
+     */
+    private void publishFile(File file, String objectName, String bucketName, ResolvedEnvironment environment) throws IOException {
         upload(environment, AsyncRequestBody.fromFile(file), bucketName, objectName).join();
     }
 
