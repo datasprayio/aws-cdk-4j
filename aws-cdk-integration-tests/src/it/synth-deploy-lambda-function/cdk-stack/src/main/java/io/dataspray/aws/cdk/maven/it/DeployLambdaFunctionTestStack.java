@@ -1,7 +1,6 @@
 package io.dataspray.aws.cdk.maven.it;
 
 import software.amazon.awscdk.CfnOutput;
-import software.constructs.Construct;
 import software.amazon.awscdk.Duration;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.services.apigateway.LambdaIntegration;
@@ -11,6 +10,7 @@ import software.amazon.awscdk.services.lambda.Code;
 import software.amazon.awscdk.services.lambda.Function;
 import software.amazon.awscdk.services.lambda.FunctionProps;
 import software.amazon.awscdk.services.lambda.Runtime;
+import software.constructs.Construct;
 
 public class DeployLambdaFunctionTestStack extends Stack {
 
@@ -20,7 +20,7 @@ public class DeployLambdaFunctionTestStack extends Stack {
         FunctionProps functionProperties = FunctionProps.builder()
                 .code(Code.fromAsset("./target/synth-deploy-lambda-function-it-handler-1.0.0.jar"))
                 .handler("io.dataspray.aws.cdk.maven.it.Function")
-                .runtime(Runtime.JAVA_8)
+                .runtime(Runtime.JAVA_21)
                 .timeout(Duration.seconds(30))
                 .memorySize(512)
                 .build();
