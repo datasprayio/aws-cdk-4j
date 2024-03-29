@@ -37,7 +37,7 @@ public class BootstrapImpl implements Bootstrap {
      * - Pull latest bootstrap-template.yaml from https://raw.githubusercontent.com/aws/aws-cdk/main/packages/aws-cdk/lib/api/bootstrap/bootstrap-template.yaml
      * - Update this version to match the newly updated template
      */
-    private static final int TOOLKIT_STACK_VERSION = 19;
+    private static final int TOOLKIT_STACK_VERSION = 20;
     private static final int DEFAULT_BOOTSTRAP_STACK_VERSION = getDefaultBootstrapStackVersion();
     private static final String BOOTSTRAP_VERSION_OUTPUT = "BootstrapVersion";
 

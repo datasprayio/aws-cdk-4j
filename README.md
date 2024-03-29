@@ -23,12 +23,22 @@
     - [Deployment](#deploy)
     - [Destroy](#destroy)
 - [Authentication](#authentication)
+- [AWS CDK Dependency bump](#aws-cdk-dependency-bump)
 - [Migration from LinguaRobot](#migration-from-linguarobot)
 - [Security Policy](#security-policy)
 
 # Getting Started
 
-The plugin requires Java >= 8 and Maven >= 3.5.
+Requirements:
+
+| Depdenency                | Version    |
+|---------------------------|------------|
+| Java                      | >= 8       |
+| Maven                     | >= 3.5     |
+| AWS CDK                   | <= 2.134.0 |
+| AWS Cloud Assembly Schema | <= 36.0.0  |
+
+_To bump up, open an issue or [see here](#aws-cdk-dependency-bump)_
 
 ## As a standalone library
 
@@ -278,6 +288,23 @@ The plugin tries to find the credentials and region in different sources in the 
 * Using Java system properties `aws.accessKeyId`, `aws.secretKey` and `aws.region`.
 * Using environment variables `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_DEFAULT_REGION`
 * Looking for the credentials and region associated with the default profile in the credentials and config files.
+
+# AWS CDK Dependency bump
+
+In order to use the latest AWS CDK, this repository needs to be updated to support your version. This section describes
+the process of bumping these dependencies.
+
+## Bump the AWS versions
+
+In [pom.xml](pom.xml), bump the following versions: `aws.cdk.version`, `aws.sdk.version`, `aws.cdk.jsii.version`.
+
+At the top of this README, update the CDK version and the version of the cloud assembly schema version that can
+be [found here](https://github.com/aws/aws-cdk/blob/dffedca154f7cb31a5cefc24c638ad069577c836/packages/aws-cdk-lib/cloud-assembly-schema/schema/cloud-assembly.version.json).
+
+## Bump the Bootstrap Stack version
+
+In [BootstrampImpl.java](aws-cdk/src/main/java/io/dataspray/aws/cdk/BootstrapImpl.java), under the
+`TOOLKIT_STACK_VERSION` constant, there are instructions on how to bring the latest version of the bootstrap stack.
 
 # Migration from LinguaRobot
 
