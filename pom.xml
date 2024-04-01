@@ -262,7 +262,7 @@
                         Latest version 3.6.0 causes IT failure:
                         NoClassDefFoundError: Could not initialize class org.codehaus.groovy.runtime.InvokerHelper
                     -->
-                    <version>3.3.0</version>
+                    <version>3.6.1</version>
                 </plugin>
             </plugins>
         </pluginManagement>
